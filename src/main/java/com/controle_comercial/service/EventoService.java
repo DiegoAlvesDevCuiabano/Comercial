@@ -14,30 +14,17 @@ public class EventoService {
     @Autowired
     private EventoRepository eventoRepository;
 
-    // Lista todos os eventos
     public List<Evento> listarTodos() {
         return eventoRepository.findAll();
     }
 
-    // Retorna eventos de uma data específica
     public List<Evento> listarPorData(LocalDate data) {
-        return eventoRepository.findByData(data);
+        return eventoRepository.findByDataEvento(data);
     }
 
-    // Salva ou atualiza um evento
-    public Evento salvar(Evento evento) {
-        return eventoRepository.save(evento);
+    public Evento buscarPorId(Integer id) {
+        return eventoRepository.findByIdEvento(id).get(0);
     }
 
-    // Busca um evento pelo ID
-    public Evento buscarPorId(Long id) {
-        return eventoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento não encontrado!"));
-    }
-
-    // Exclui um evento
-    public void excluir(Long id) {
-        eventoRepository.deleteById(id);
-    }
 }
 

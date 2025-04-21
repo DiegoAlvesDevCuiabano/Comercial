@@ -1,27 +1,46 @@
 package com.controle_comercial.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
-@Data
+@Getter
+@Setter
 @Entity
-@Table(name = "eventos")
+@Table(name = "Evento")
 public class Evento {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Geração automática de ID
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_evento")
+    private Integer idEvento;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String titulo;
 
-    @Column(nullable = false)
-    private LocalDate data; // Data do evento
+    @Column(nullable = false, name = "data_evento")
+    private LocalDate dataEvento;
 
-    private String descricao; // Descrição opcional do evento
+    @Column(nullable = false, name = "hora_inicio")
+    private LocalTime horaInicio;
 
-    @Column(nullable = true)
-    private String local; // Local do evento (opcional)
+    @Column(nullable = false, name = "hora_fim")
+    private LocalTime horaFim;
+
+    @ManyToOne
+    @JoinColumn(name = "id_cliente", nullable = false)
+    private Cliente cliente;
+
+    @ManyToOne
+    @JoinColumn(name = "id_local", nullable = false)
+    private Local local;
+
+    @Column(name = "valor_total", columnDefinition = "DECIMAL(10,2)")
+    private Double valorTotal;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacoes;
 }

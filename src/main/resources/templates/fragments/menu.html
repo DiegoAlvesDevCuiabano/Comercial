@@ -1,7 +1,12 @@
-<nav class="menu">
-  <a href="/">Início</a>
-  <a href="/clientes">Clientes</a>
-  <a href="/eventos">Eventos</a>
-  <a href="/salas">Salas</a>
-  <a href="/relatorios">Relatórios</a>
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<nav th:fragment="menu" class="menu">
+  <a th:href="@{/}">Início</a>
+  <a th:href="@{/eventos}">Eventos</a>
+  <a th:href="@{/clientes}">Clientes</a>
+  <a th:href="@{/salas}">Salas</a>
+  <a th:href="@{/servico}">Serviço</a>
+  <a th:href="@{/administradores}" th:if="${userDetails.master}">Administradores</a>
+  <a th:href="@{/relatorios}" th:if="${userDetails.master}">Relatórios</a>
 </nav>
+</html>

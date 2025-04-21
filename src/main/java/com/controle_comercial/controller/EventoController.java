@@ -18,28 +18,26 @@ public class EventoController {
     @Autowired
     private EventoService eventoService;
 
-    // Endpoint para exibir todos os eventos em JSON (para o calendário)
     @GetMapping("/listar")
     @ResponseBody
     public List<Evento> listarEventos() {
         return eventoService.listarTodos();
     }
 
-    // Página de detalhes de eventos de uma data específica
     @GetMapping("/{id}")
-    public String detalhesEvento(@PathVariable Long id, Model model) {
+    public String detalhesEvento(@PathVariable Integer id, Model model) {
         Evento evento = eventoService.buscarPorId(id);
         model.addAttribute("evento", evento);
         return "eventos/detalhes"; // Renderiza o arquivo templates/eventos/detalhes.html
     }
 
-    // Página de todos os eventos de uma data específica
     @GetMapping("/data")
     public String listarPorData(@RequestParam("data") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data, Model model) {
         List<Evento> eventos = eventoService.listarPorData(data);
         model.addAttribute("eventos", eventos);
         model.addAttribute("data", data);
-        return "eventos/lista"; // Renderiza o arquivo templates/eventos/lista.html
+        return "eventos/lista";
     }
+
 }
 

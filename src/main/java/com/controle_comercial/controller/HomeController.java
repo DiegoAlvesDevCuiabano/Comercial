@@ -10,8 +10,7 @@ public class HomeController {
 
     @GetMapping("/home")
     public String homePage(Authentication authentication, Model model) {
-        // Adiciona o objeto `authentication` ao modelo
         model.addAttribute("authentication", authentication);
-        return "home"; // Renderiza templates/home.html
+        return "home";
     }
 }
