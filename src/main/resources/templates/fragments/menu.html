@@ -3,9 +3,9 @@
 <nav th:fragment="menu" class="menu">
   <a th:href="@{/home}">Início</a>
   <a th:href="@{/eventos}">Eventos</a>
-  <a th:href="@{/comercial/clientes}">Clientes</a>
+  <a th:href="@{/clientes}">Clientes</a>
   <a th:href="@{/salas}">Salas</a>
-  <a th:href="@{/servico}">Serviço</a>
+  <a th:href="@{/servicos}">Serviço</a>
   <a th:href="@{/administradores}" th:if="${userDetails.master}">Administradores</a>
   <a th:href="@{/relatorios}" th:if="${userDetails.master}">Relatórios</a>
 </nav>

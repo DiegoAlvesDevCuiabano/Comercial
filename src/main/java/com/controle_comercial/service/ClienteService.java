@@ -2,7 +2,6 @@ package com.controle_comercial.service;
 
 import com.controle_comercial.model.entity.Cliente;
 import com.controle_comercial.repository.ClienteRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
