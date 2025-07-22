@@ -10,28 +10,23 @@
 
 <main class="py-4">
   <div class="clientes-container">
-    <!-- Título principal -->
     <h2 class="mb-4">Clientes</h2>
 
-    <!-- Cabeçalho com título da tabela e botão de novo -->
     <div class="clientes-header">
       <h3 class="clientes-title">Lista de Clientes Cadastrados</h3>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#clienteModal" onclick="limparFormulario()">
         <i class="fas fa-plus me-1"></i> Novo Cliente
       </button>
     </div>
 
-    <!-- Campo de pesquisa -->
     <div class="search-box">
       <input type="text" class="form-control" placeholder="Pesquisar..." id="searchInput">
     </div>
 
-    <!-- Tabela de clientes -->
     <div class="table-responsive">
       <table class="table table-hover">
         <thead class="table-light">
         <tr>
-          <th>ID</th>
           <th>Nome</th>
           <th>Documento</th>
           <th>Telefone</th>
@@ -40,50 +35,45 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="cliente : ${clientes}" th:if="${clientes.size() > 0}">
-          <td th:text="${cliente.idCliente}"></td>
-          <td th:text="${cliente.nome}"></td>
-          <td th:text="${cliente.documento} ?: 'Não informado'"></td>
-          <td th:text="${cliente.telefone} ?: 'Não informado'"></td>
-          <td th:text="${cliente.email} ?: 'Não informado'"></td>
-          <td class="table-actions text-end">
-            <button class="btn btn-sm btn-outline-primary me-1"
-                    th:attr="data-id=${cliente.idCliente}"
+        <tr th:each="cliente : ${clientes}">
+          <td th:text="${cliente.nome}">Nome</td>
+          <td th:text="${cliente.documento} ?: 'Não informado'">Documento</td>
+          <td th:text="${cliente.telefone} ?: 'Não informado'">Telefone</td>
+          <td th:text="${cliente.email} ?: 'Não informado'">Email</td>
+          <td class="table-actions text-center">
+          <button type="button"
+                    class="btn btn-sm btn-outline-primary me-2 d-inline-flex align-items-center"
+                    th:onclick="'carregarClienteParaEdicao(' + ${cliente.idCliente} + ')'"
                     data-bs-toggle="modal"
-                    data-bs-target="#clienteModal"
-                    onclick="carregarClienteParaEdicao(this.getAttribute('data-id'))">
-              <i class="fas fa-edit"></i>
+                    data-bs-target="#clienteModal">
+            <i class="fas fa-edit"></i> Editar
             </button>
-            <form th:action="@{/clientes/excluir/{id}(id=${cliente.idCliente})}"
-                  method="post"
-                  onsubmit="return confirm('Tem certeza que deseja excluir este cliente?');">
-              <button type="submit" class="btn btn-sm btn-outline-danger">
-                <i class="fas fa-trash"></i>
+
+            <form th:action="@{'/clientes/excluir/' + ${cliente.idCliente}}" method="post" style="display:inline;">
+              <button type="submit"
+                      class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                      onclick="return confirm('Deseja realmente excluir este cliente?')">
+                <i class="fas fa-trash-alt"></i> Excluir
               </button>
             </form>
           </td>
         </tr>
         <tr th:if="${clientes.size() == 0}">
-          <td colspan="6" class="text-center py-4">Nenhum Cliente Encontrado</td>
+          <td colspan="5" class="text-center py-4">Nenhum Cliente Encontrado</td>
         </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Rodapé com paginação e contagem -->
     <div class="table-footer">
       <div class="pagination-info">
-        Mostrando <span th:text="${clientes.size()}"></span> de <span th:text="${clientes.size()}"></span> registros
-      </div>
-      <div>
-        <button class="btn btn-outline-secondary btn-sm me-1" disabled>Anterior</button>
-        <button class="btn btn-outline-secondary btn-sm" disabled>Próximo</button>
+        Mostrando <span th:text="${clientes.size()}">0</span> registro(s)
       </div>
     </div>
   </div>
 </main>
 
-<!-- Modal para formulário de cliente -->
+<!-- Modal -->
 <div class="modal fade" id="clienteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -93,7 +83,7 @@
       </div>
       <form th:action="@{/clientes/salvar}" method="post">
         <div class="modal-body">
-          <input type="hidden" id="clienteId" name="idCliente">
+          <input type="hidden" name="idCliente" id="clienteId">
 
           <div class="mb-3">
             <label for="nome" class="form-label">Nome *</label>
@@ -132,56 +122,39 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 <script>
-  // Máscaras para os campos
-  $(document).ready(function() {
-    $('#documento').mask('000.000.000-00', {reverse: true});
+  $(document).ready(function () {
+    $('#documento').mask('000.000.000-00', { reverse: true });
     $('#telefone').mask('(00) 00000-0000');
 
-    // Filtro simples de pesquisa
-    $('#searchInput').keyup(function() {
+    $('#searchInput').on('keyup', function () {
       const value = $(this).val().toLowerCase();
-      $('tbody tr').filter(function() {
+      $('tbody tr').filter(function () {
         $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
       });
     });
   });
 
-  // Função para carregar cliente para edição
   function carregarClienteParaEdicao(id) {
-    fetch(`/clientes/buscar/${id}`)
-            .then(response => response.json())
+    fetch('clientes/buscar/' + id)
+            .then(res => res.json())
             .then(cliente => {
               document.getElementById('modalTitle').textContent = 'Editar Cliente';
               document.getElementById('clienteId').value = cliente.idCliente;
-              document.getElementById('nome').value = cliente.nome;
+              document.getElementById('nome').value = cliente.nome || '';
               document.getElementById('documento').value = cliente.documento || '';
               document.getElementById('telefone').value = cliente.telefone || '';
               document.getElementById('email').value = cliente.email || '';
             })
-            .catch(error => {
-              console.error('Erro ao carregar cliente:', error);
-              alert('Não foi possível carregar os dados do cliente');
-            });
+            .catch(() => alert('Erro ao buscar cliente'));
   }
 
-  // Função para preparar modal para exclusão (desabilitar campos)
-  function prepararModalExclusao() {
-    const fields = ['nome', 'documento', 'telefone', 'email'];
-    fields.forEach(field => {
-      const element = document.getElementById(field);
-      element.readOnly = true;
-      element.classList.add('disabled-field');
-    });
-  }
-
-  // Função para preparar modal para edição (habilitar campos)
-  function prepararModalEdicao() {
-    const fields = ['nome', 'documento', 'telefone', 'email'];
-    fields.forEach(field => {
-      const element = document.getElementById(field);
-      element.readOnly = false;
-      element.classList.remove('disabled-field');
-    });
+  function limparFormulario() {
+    document.getElementById('modalTitle').textContent = 'Novo Cliente';
+    document.getElementById('clienteId').value = '';
+    document.getElementById('nome').value = '';
+    document.getElementById('documento').value = '';
+    document.getElementById('telefone').value = '';
+    document.getElementById('email').value = '';
   }
 </script>
 </body>

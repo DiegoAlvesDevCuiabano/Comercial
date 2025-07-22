@@ -7,7 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/clientes")
@@ -19,29 +21,35 @@ public class ClienteController {
         this.service = service;
     }
 
+    @PostMapping("/salvar-multiplos")
+    public ResponseEntity<?> salvarMultiplosClientes(@RequestBody List<Cliente> clientes) {
+        try {
+            List<Cliente> clientesSalvos = clientes.stream()
+                    .map(service::salvar)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(clientesSalvos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Erro ao salvar clientes: " + e.getMessage()));
+        }
+    }
+
     @GetMapping
     public String listarClientes(Model model) {
         model.addAttribute("clientes", service.listarTodos());
         return "clientes";
     }
 
-    // Atualize o endpoint de salvar para incluir o context path
     @PostMapping("/salvar")
-    @ResponseBody
-    public ResponseEntity<?> salvarCliente(@RequestBody Cliente cliente) {
-        try {
-            Cliente savedCliente = service.salvar(cliente);
-            return ResponseEntity.ok(savedCliente);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Erro ao salvar cliente: " + e.getMessage()));
-        }
+    public String salvarCliente(@ModelAttribute Cliente cliente) {
+        service.salvar(cliente);
+        return "redirect:/clientes";
     }
 
-    @DeleteMapping("/excluir/{id}")
-    @ResponseBody
-    public void excluirCliente(@PathVariable Integer id) {
+    @PostMapping("/excluir/{id}")
+    public String excluirCliente(@PathVariable Integer id) {
         service.deletar(id);
+        return "redirect:/clientes";
     }
 
     @GetMapping("/buscar/{id}")
