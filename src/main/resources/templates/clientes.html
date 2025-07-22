@@ -40,18 +40,14 @@
           <td th:text="${cliente.documento} ?: 'Não informado'">Documento</td>
           <td th:text="${cliente.telefone} ?: 'Não informado'">Telefone</td>
           <td th:text="${cliente.email} ?: 'Não informado'">Email</td>
-          <td class="table-actions text-center">
-          <button type="button"
-                    class="btn btn-sm btn-outline-primary me-2 d-inline-flex align-items-center"
+          <td class="text-center">
+            <button type="button" class="btn btn-sm btn-outline-primary me-2"
                     th:onclick="'carregarClienteParaEdicao(' + ${cliente.idCliente} + ')'"
-                    data-bs-toggle="modal"
-                    data-bs-target="#clienteModal">
-            <i class="fas fa-edit"></i> Editar
+                    data-bs-toggle="modal" data-bs-target="#clienteModal">
+              <i class="fas fa-edit"></i> Editar
             </button>
-
             <form th:action="@{'/clientes/excluir/' + ${cliente.idCliente}}" method="post" style="display:inline;">
-              <button type="submit"
-                      class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+              <button type="submit" class="btn btn-sm btn-outline-danger"
                       onclick="return confirm('Deseja realmente excluir este cliente?')">
                 <i class="fas fa-trash-alt"></i> Excluir
               </button>
@@ -64,16 +60,10 @@
         </tbody>
       </table>
     </div>
-
-    <div class="table-footer">
-      <div class="pagination-info">
-        Mostrando <span th:text="${clientes.size()}">0</span> registro(s)
-      </div>
-    </div>
   </div>
 </main>
 
-<!-- Modal -->
+<!-- Modal Cliente -->
 <div class="modal fade" id="clienteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -139,7 +129,7 @@
             .then(res => res.json())
             .then(cliente => {
               document.getElementById('modalTitle').textContent = 'Editar Cliente';
-              document.getElementById('clienteId').value = cliente.idCliente;
+              document.getElementById('clienteId').value = cliente.idCliente || '';
               document.getElementById('nome').value = cliente.nome || '';
               document.getElementById('documento').value = cliente.documento || '';
               document.getElementById('telefone').value = cliente.telefone || '';
