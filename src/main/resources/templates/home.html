@@ -8,7 +8,7 @@
     <div class="calendar-container">
         <div class="calendar-header">
             <button id="prev-month">◀ Mês Anterior</button>
-            <h3 id="current-month">Novembro 2024</h3>
+            <h3 id="current-month">Carregando...</h3>
             <button id="next-month">Próximo Mês ▶</button>
         </div>
         <div class="calendar-days">
@@ -23,84 +23,130 @@
         <div class="calendar-grid" id="calendar-grid"></div>
     </div>
 </main>
+
 <div th:replace="~{fragments/modal :: eventModal}"></div>
+<div th:replace="~{fragments/detalheModal :: eventDetailsModal}"></div>
+
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Simulação de eventos
-    const eventosMockados = [
-        {date: '2025-04-15', title: 'Reunião Comercial'},
-        {date: '2025-04-15', title: 'Workshop de Tecnologia'},
-        {date: '2025-04-18', title: 'Workshop de Tecnologia'},
-        {date: '2025-04-21', title: 'Palestra Motivacional'}
-    ];
-
     const calendarGrid = document.getElementById('calendar-grid');
     const currentMonthLabel = document.getElementById('current-month');
     const prevMonthButton = document.getElementById('prev-month');
     const nextMonthButton = document.getElementById('next-month');
 
-    const eventModal = new bootstrap.Modal(document.getElementById('eventModal')); // Inicializa o modal
-    const eventListElement = document.getElementById('eventList');
-    const detailsButton = document.getElementById('detailsButton');
+    let eventModal, eventListElement, detailsButton;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+        eventListElement = document.getElementById('eventList');
+        detailsButton = document.getElementById('detailsButton');
+
+        fetchEventosDoMes(currentMonth, currentYear);
+    });
 
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
+    let eventosDoMes = [];
+
+    function fetchEventosDoMes(month, year) {
+        const inicio = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+        const fim = new Date(year, month + 1, 0).toISOString().slice(0, 10);
+
+        return fetch(`eventos/api/eventos?inicio=${inicio}&fim=${fim}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Erro ao buscar eventos");
+                return res.json();
+            })
+            .then(data => {
+                eventosDoMes = data;
+                renderCalendar(month, year);
+            })
+            .catch(err => {
+                console.error(err);
+                currentMonthLabel.textContent = "Erro ao carregar";
+            });
+    }
 
     function renderCalendar(month, year) {
-        currentMonthLabel.textContent = `${['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][month]} ${year}`;
+        const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        currentMonthLabel.textContent = `${nomesMeses[month]} ${year}`;
         calendarGrid.innerHTML = '';
 
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
+        const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-        for (let i = 0; i < firstDayOfMonth; i++) {
-            calendarGrid.appendChild(document.createElement('div'));
+        for (let i = 0; i < firstDay; i++) {
+            calendarGrid.appendChild(document.createElement('div')); // células vazias
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
+            const cellDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const cell = document.createElement('div');
-            const cellDate = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             cell.className = 'calendar-cell';
             cell.innerHTML = `<span>${day}</span>`;
 
-            const dayEvents = eventosMockados.filter(e => e.date === cellDate);
-            if (dayEvents.length) {
+            const eventosDoDia = eventosDoMes.filter(e => e.dataEvento === cellDate);
+
+            if (eventosDoDia.length > 0) {
                 const indicator = document.createElement('div');
                 indicator.className = 'event-indicator';
                 cell.appendChild(indicator);
             }
 
-            cell.addEventListener('click', () => {
-                openModal(cellDate, dayEvents);
-            });
-
+            cell.addEventListener('click', () => openModal(cellDate, eventosDoDia));
             calendarGrid.appendChild(cell);
         }
     }
 
-    function openModal(date, events) {
-        eventListElement.innerHTML = events.length
-            ? `<strong>Eventos para ${date}:</strong><ul>${events.map(e => `<li>${e.title}</li>`).join('')}</ul>`
-            : `Nenhum evento disponível para ${date}.`;
+    function openModal(date, eventos) {
+        if (!eventListElement || !detailsButton) return;
 
-        detailsButton.onclick = () => window.location.href = `/eventos?date=${date}`;
-        eventModal.show(); // Abre o modal
+        if (eventos.length > 0) {
+            eventListElement.innerHTML = `<strong>Eventos para ${date}:</strong><ul>${eventos.map(e => `<li>${e.titulo}</li>`).join('')}</ul>`;
+            detailsButton.onclick = () => openDetalhes(eventos[0].idEvento);
+            detailsButton.style.display = 'inline-block';
+        } else {
+            eventListElement.textContent = `Nenhum evento disponível para ${date}.`;
+            detailsButton.style.display = 'none';
+        }
+
+        eventModal.show();
     }
+
+    function openDetalhes(idEvento) {
+        fetch(`eventos/buscar/${idEvento}`)
+            .then(res => res.json())
+            .then(data => {
+                const content = `
+                <p><strong>Título:</strong> ${data.titulo}</p>
+                <p><strong>Cliente:</strong> ${data.cliente.nome}</p>
+                <p><strong>Local:</strong> ${data.local.nome}</p>
+                <p><strong>Data:</strong> ${data.dataEvento}</p>
+                <p><strong>Valor Total:</strong> R$ ${data.valorTotal.toFixed(2).replace('.', ',')}</p>
+            `;
+                document.getElementById('eventDetailsContent').innerHTML = content;
+
+                const modal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
+                modal.show();
+            });
+    }
+
 
     prevMonthButton.onclick = () => {
         currentMonth = (currentMonth - 1 + 12) % 12;
-        currentYear = currentMonth === 11 ? currentYear - 1 : currentYear;
-        renderCalendar(currentMonth, currentYear);
+        if (currentMonth === 11) currentYear--;
+        fetchEventosDoMes(currentMonth, currentYear);
     };
 
     nextMonthButton.onclick = () => {
         currentMonth = (currentMonth + 1) % 12;
-        currentYear = currentMonth === 0 ? currentYear + 1 : currentYear;
-        renderCalendar(currentMonth, currentYear);
+        if (currentMonth === 0) currentYear++;
+        fetchEventosDoMes(currentMonth, currentYear);
     };
-
-    renderCalendar(currentMonth, currentYear);
 </script>
 </body>
 </html>

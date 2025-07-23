@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -94,4 +95,26 @@ public class EventoController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/api/eventos")
+    @ResponseBody
+    public List<Map<String, Object>> eventosPorPeriodo(
+            @RequestParam String inicio,
+            @RequestParam String fim) {
+
+        return eventoService.listarTodos().stream()
+                .filter(e -> {
+                    return !e.getDataEvento().isBefore(LocalDate.parse(inicio)) &&
+                            !e.getDataEvento().isAfter(LocalDate.parse(fim));
+                })
+                .map(e -> {
+                    Map<String, Object> mapa = new HashMap<>();
+                    mapa.put("idEvento", e.getIdEvento());
+                    mapa.put("titulo", e.getTitulo());
+                    mapa.put("dataEvento", e.getDataEvento().toString());
+                    return mapa;
+                })
+                .collect(Collectors.toList());
+    }
+
 }
