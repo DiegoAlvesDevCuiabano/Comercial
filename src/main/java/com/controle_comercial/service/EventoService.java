@@ -6,6 +6,7 @@ import com.controle_comercial.repository.EventoServicoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,31 +31,10 @@ public class EventoService {
 
     @Transactional
     public Evento salvar(Evento evento) {
-        // Primeiro salva o evento (se for novo)
-        Evento eventoSalvo = repository.save(evento);
-
-        // Atualiza as associações com serviços
-        if (evento.getServicos() != null) {
-            // Remove associações antigas
-            eventoServicoRepository.deleteByEventoId(eventoSalvo.getIdEvento());
-
-            // Adiciona as novas associações
-            for (EventoServico es : evento.getServicos()) {
-                // Cria uma nova instância com a chave composta
-                EventoServicoId id = new EventoServicoId(eventoSalvo.getIdEvento(), es.getServico().getIdServico());
-
-                EventoServico novaAssociacao = new EventoServico();
-                novaAssociacao.setId(id);
-                novaAssociacao.setEvento(eventoSalvo);
-                novaAssociacao.setServico(es.getServico());
-                novaAssociacao.setQuantidade(es.getQuantidade());
-
-                eventoServicoRepository.save(novaAssociacao);
-            }
-        }
-
-        return repository.findById(eventoSalvo.getIdEvento()).orElse(eventoSalvo);
+        // Para eventos existentes, o Hibernate irá gerenciar a coleção automaticamente
+        return repository.save(evento);
     }
+
 
     @Transactional(readOnly = true)
     public Optional<Evento> buscarPorId(Integer id) {

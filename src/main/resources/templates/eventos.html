@@ -179,7 +179,7 @@
         fetch('eventos/buscar/' + id)
             .then(res => {
                 if (!res.ok) {
-                    throw new Error('Erro ao buscar evento');
+                    throw new Error('Erro ao buscar evento: ' + res.statusText);
                 }
                 return res.json();
             })
@@ -211,13 +211,14 @@
 
                 // Preenche serviços com quantidades
                 if (evento.servicos && evento.servicos.length > 0) {
-                    evento.servicos.forEach(servico => {
-                        const checkbox = document.getElementById('servico_' + servico.servico.idServico);
-                        const quantidadeInput = document.getElementById('quantidade_' + servico.servico.idServico);
+                    evento.servicos.forEach(item => {
+                        const servicoId = item.servico.idServico;
+                        const checkbox = document.getElementById('servico_' + servicoId);
+                        const quantidadeInput = document.getElementById('quantidade_' + servicoId);
 
                         if (checkbox && quantidadeInput) {
                             checkbox.checked = true;
-                            quantidadeInput.value = servico.quantidade || 1;
+                            quantidadeInput.value = item.quantidade || 1;
                         }
                     });
                 }
@@ -229,7 +230,7 @@
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert(error.message);
+                alert('Erro ao carregar evento: ' + error.message);
             });
     }
 

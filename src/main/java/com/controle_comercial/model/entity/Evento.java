@@ -1,5 +1,6 @@
 package com.controle_comercial.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -48,6 +49,15 @@ public class Evento {
     private String observacoes;
 
     @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @JsonIgnoreProperties("evento")
     private Set<EventoServico> servicos = new HashSet<>();
+
+    public void adicionarServico(Servico servico, Integer quantidade) {
+        EventoServico eventoServico = new EventoServico();
+        eventoServico.setEvento(this);
+        eventoServico.setServico(servico);
+        eventoServico.setQuantidade(quantidade);
+        eventoServico.setId(new EventoServicoId(this.idEvento, servico.getIdServico()));
+        servicos.add(eventoServico);
+    }
 }

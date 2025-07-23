@@ -4,6 +4,7 @@ import com.controle_comercial.model.entity.*;
 import com.controle_comercial.service.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,8 +55,10 @@ public class EventoController {
         evento.setCliente(cliente);
         evento.setLocal(local);
 
-        // Processa os serviços com quantidades
-        Set<EventoServico> servicos = new HashSet<>();
+        // Limpa os serviços existentes (sem criar nova coleção)
+        evento.getServicos().clear();
+
+        // Processa os novos serviços
         allParams.forEach((key, value) -> {
             if (key.startsWith("servico_") && "on".equals(value)) {
                 Integer servicoId = Integer.parseInt(key.replace("servico_", ""));
@@ -67,11 +70,13 @@ public class EventoController {
                 EventoServico es = new EventoServico();
                 es.setServico(servico);
                 es.setQuantidade(quantidade);
-                servicos.add(es);
+                es.setEvento(evento);
+                es.setId(new EventoServicoId(evento.getIdEvento(), servicoId));
+
+                evento.getServicos().add(es); // Adiciona à coleção existente
             }
         });
 
-        evento.setServicos(servicos);
         eventoService.salvar(evento);
         return "redirect:/eventos";
     }
@@ -84,14 +89,56 @@ public class EventoController {
 
     @GetMapping("/buscar/{id}")
     @ResponseBody
-    public ResponseEntity<Evento> buscarPorId(@PathVariable Integer id) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> buscarPorId(@PathVariable Integer id) {
         return eventoService.buscarPorId(id)
                 .map(evento -> {
-                    // Força o carregamento das associações
-                    if(evento.getServicos() != null) {
-                        evento.getServicos().size();
+                    // Cria um DTO manual para evitar problemas de serialização
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("idEvento", evento.getIdEvento());
+                    response.put("titulo", evento.getTitulo());
+                    response.put("dataEvento", evento.getDataEvento().toString());
+                    response.put("horaInicio", evento.getHoraInicio().toString());
+                    response.put("horaFim", evento.getHoraFim().toString());
+                    response.put("valorTotal", evento.getValorTotal());
+                    response.put("observacoes", evento.getObservacoes());
+
+                    // Cliente
+                    if(evento.getCliente() != null) {
+                        Map<String, Object> clienteMap = new HashMap<>();
+                        clienteMap.put("idCliente", evento.getCliente().getIdCliente());
+                        clienteMap.put("nome", evento.getCliente().getNome());
+                        response.put("cliente", clienteMap);
                     }
-                    return ResponseEntity.ok(evento);
+
+                    // Local
+                    if(evento.getLocal() != null) {
+                        Map<String, Object> localMap = new HashMap<>();
+                        localMap.put("idLocal", evento.getLocal().getIdLocal());
+                        localMap.put("nome", evento.getLocal().getNome());
+                        response.put("local", localMap);
+                    }
+
+                    // Serviços
+                    if(evento.getServicos() != null && !evento.getServicos().isEmpty()) {
+                        List<Map<String, Object>> servicosList = evento.getServicos().stream()
+                                .map(es -> {
+                                    Map<String, Object> servicoMap = new HashMap<>();
+                                    servicoMap.put("quantidade", es.getQuantidade());
+                                    if(es.getServico() != null) {
+                                        Map<String, Object> s = new HashMap<>();
+                                        s.put("idServico", es.getServico().getIdServico());
+                                        s.put("nome", es.getServico().getNome());
+                                        s.put("precoUnitario", es.getServico().getPrecoUnitario());
+                                        servicoMap.put("servico", s);
+                                    }
+                                    return servicoMap;
+                                })
+                                .collect(Collectors.toList());
+                        response.put("servicos", servicosList);
+                    }
+
+                    return ResponseEntity.ok(response);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

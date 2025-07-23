@@ -1,6 +1,8 @@
 package com.controle_comercial.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,11 +15,12 @@ public class EventoServico {
     @ManyToOne
     @MapsId("eventoId")
     @JoinColumn(name = "id_evento")
+    @JsonIgnore
     private Evento evento;
 
     @ManyToOne
     @JoinColumn(name = "id_servico")
-    @JsonBackReference
+    @JsonIgnoreProperties("eventos")
     private Servico servico;
 
     @Column(nullable = false)

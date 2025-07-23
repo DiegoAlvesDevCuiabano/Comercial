@@ -14,6 +14,9 @@ public class EventoServicoId implements Serializable {
         this.servicoId = servicoId;
     }
 
+    public EventoServicoId() {
+    }
+
     public Integer getEventoId() {
         return eventoId;
     }
