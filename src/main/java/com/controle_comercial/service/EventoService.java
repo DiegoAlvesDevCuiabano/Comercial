@@ -1,30 +1,71 @@
 package com.controle_comercial.service;
 
-import com.controle_comercial.model.entity.Evento;
+import com.controle_comercial.model.entity.*;
 import com.controle_comercial.repository.EventoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.controle_comercial.repository.EventoServicoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class EventoService {
 
-    @Autowired
-    private EventoRepository eventoRepository;
+    private final EventoRepository repository;
+    private final EventoServicoRepository eventoServicoRepository;
 
+    public EventoService(EventoRepository repository,
+                         EventoServicoRepository eventoServicoRepository) {
+        this.repository = repository;
+        this.eventoServicoRepository = eventoServicoRepository;
+    }
+
+    @Transactional(readOnly = true)
     public List<Evento> listarTodos() {
-        return eventoRepository.findAll();
+        return repository.findAllByOrderByDataEventoAsc();
     }
 
-    public List<Evento> listarPorData(LocalDate data) {
-        return eventoRepository.findByDataEvento(data);
+    @Transactional
+    public Evento salvar(Evento evento) {
+        // Primeiro salva o evento (se for novo)
+        Evento eventoSalvo = repository.save(evento);
+
+        // Atualiza as associações com serviços
+        if (evento.getServicos() != null) {
+            // Remove associações antigas
+            eventoServicoRepository.deleteByEventoId(eventoSalvo.getIdEvento());
+
+            // Adiciona as novas associações
+            for (EventoServico es : evento.getServicos()) {
+                // Cria uma nova instância com a chave composta
+                EventoServicoId id = new EventoServicoId(eventoSalvo.getIdEvento(), es.getServico().getIdServico());
+
+                EventoServico novaAssociacao = new EventoServico();
+                novaAssociacao.setId(id);
+                novaAssociacao.setEvento(eventoSalvo);
+                novaAssociacao.setServico(es.getServico());
+                novaAssociacao.setQuantidade(es.getQuantidade());
+
+                eventoServicoRepository.save(novaAssociacao);
+            }
+        }
+
+        return repository.findById(eventoSalvo.getIdEvento()).orElse(eventoSalvo);
     }
 
-    public Evento buscarPorId(Integer id) {
-        return eventoRepository.findByIdEvento(id).get(0);
+    @Transactional(readOnly = true)
+    public Optional<Evento> buscarPorId(Integer id) {
+        return repository.findById(id);
     }
 
+    @Transactional
+    public void deletar(Integer id) {
+        // Primeiro remove as associações com serviços
+        eventoServicoRepository.deleteByEventoId(id);
+        // Depois remove o evento
+        repository.deleteById(id);
+    }
 }
-

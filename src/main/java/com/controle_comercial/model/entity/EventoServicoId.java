@@ -1,45 +1,43 @@
 package com.controle_comercial.model.entity;
 
+import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
+@Embeddable
 public class EventoServicoId implements Serializable {
-    private Integer evento;
-    private Integer servico;
+    private Integer eventoId;
+    private Integer servicoId;
 
-    public EventoServicoId() {}
-
-    public EventoServicoId(Integer evento, Integer servico) {
-        this.evento = evento;
-        this.servico = servico;
+    public EventoServicoId(Integer eventoId, Integer servicoId) {
+        this.eventoId = eventoId;
+        this.servicoId = servicoId;
     }
 
-    public Integer getEvento() {
-        return evento;
+    public Integer getEventoId() {
+        return eventoId;
     }
 
-    public void setEvento(Integer evento) {
-        this.evento = evento;
+    public void setEventoId(Integer eventoId) {
+        this.eventoId = eventoId;
     }
 
-    public Integer getServico() {
-        return servico;
+    public Integer getServicoId() {
+        return servicoId;
     }
 
-    public void setServico(Integer servico) {
-        this.servico = servico;
+    public void setServicoId(Integer servicoId) {
+        this.servicoId = servicoId;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EventoServicoId that = (EventoServicoId) o;
-        return Objects.equals(evento, that.evento) && Objects.equals(servico, that.servico);
+        if (!(o instanceof EventoServicoId that)) return false;
+        return Objects.equals(eventoId, that.eventoId) && Objects.equals(servicoId, that.servicoId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(evento, servico);
+        return Objects.hash(eventoId, servicoId);
     }
 }

@@ -107,6 +107,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function () {
+        // Inicializa máscaras (se necessário)
+        // $('#documento').mask('000.000.000-00', { reverse: true });
+        // $('#telefone').mask('(00) 00000-0000');
+
+        // Filtro de busca
         $('#searchInput').on('keyup', function () {
             const value = $(this).val().toLowerCase();
             $('tbody tr').filter(function () {
@@ -115,25 +120,69 @@
         });
     });
 
-    function carregarLocalParaEdicao(id) {
-        fetch('local/buscar/' + id)
-            .then(res => res.json())
-            .then(local => {
-                document.getElementById('modalTitle').textContent = 'Editar Local';
-                document.getElementById('localId').value = local.idLocal || '';
-                document.getElementById('nome').value = local.nome || '';
-                document.getElementById('tipo').value = local.tipo || '';
-                document.getElementById('capacidade').value = local.capacidade || '';
-            })
-            .catch(() => alert('Erro ao buscar local'));
+    function carregarEventoParaEdicao(id) {
+        $.ajax({
+            url: 'eventos/buscar/' + id,
+            method: 'GET',
+            dataType: 'json',
+            success: function(evento) {
+                // Preenche campos básicos
+                $('#eventoId').val(evento.idEvento || '');
+                $('#titulo').val(evento.titulo || '');
+                $('#dataEvento').val(evento.dataEvento || '');
+                $('#horaInicio').val(evento.horaInicio || '');
+                $('#horaFim').val(evento.horaFim || '');
+                $('#valorTotal').val(evento.valorTotal || '');
+                $('#observacoes').val(evento.observacoes || '');
+
+                // Preenche cliente e local
+                if (evento.cliente) {
+                    $('#cliente').val(evento.cliente.idCliente);
+                }
+                if (evento.local) {
+                    $('#local').val(evento.local.idLocal);
+                }
+
+                // Limpa seleções anteriores
+                $('[id^="servico_"]').prop('checked', false);
+                $('[id^="quantidade_"]').val('1');
+
+                // Preenche serviços com quantidades
+                if (evento.servicos && evento.servicos.length > 0) {
+                    evento.servicos.forEach(function(servico) {
+                        $('#servico_' + servico.servico.idServico).prop('checked', true);
+                        $('#quantidade_' + servico.servico.idServico).val(servico.quantidade || 1);
+                    });
+                }
+
+                // Atualiza título e abre o modal
+                $('#modalTitle').text('Editar Evento');
+                const modal = new bootstrap.Modal(document.getElementById('eventoModal'));
+                modal.show();
+            },
+            error: function(xhr, status, error) {
+                console.error('Erro:', error);
+                alert('Erro ao buscar evento: ' + error);
+            }
+        });
     }
 
     function limparFormulario() {
-        document.getElementById('modalTitle').textContent = 'Novo Local';
-        document.getElementById('localId').value = '';
-        document.getElementById('nome').value = '';
-        document.getElementById('tipo').value = '';
-        document.getElementById('capacidade').value = '';
+        // Limpa campos básicos
+        $('#modalTitle').text('Novo Evento');
+        $('#eventoId').val('');
+        $('#titulo').val('');
+        $('#dataEvento').val('');
+        $('#horaInicio').val('');
+        $('#horaFim').val('');
+        $('#valorTotal').val('');
+        $('#observacoes').val('');
+        $('#cliente').val('');
+        $('#local').val('');
+
+        // Limpa serviços
+        $('[id^="servico_"]').prop('checked', false);
+        $('[id^="quantidade_"]').val('1');
     }
 </script>
 </body>
