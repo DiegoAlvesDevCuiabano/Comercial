@@ -46,7 +46,6 @@ public class EventoController {
                          @RequestParam("local.id") Integer localId,
                          @RequestParam Map<String, String> allParams) {
 
-        // Carrega cliente e local
         Cliente cliente = clienteService.buscarPorId(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         Local local = localService.buscarPorId(localId)
@@ -55,10 +54,8 @@ public class EventoController {
         evento.setCliente(cliente);
         evento.setLocal(local);
 
-        // Limpa os serviços existentes (sem criar nova coleção)
         evento.getServicos().clear();
 
-        // Processa os novos serviços
         allParams.forEach((key, value) -> {
             if (key.startsWith("servico_") && "on".equals(value)) {
                 Integer servicoId = Integer.parseInt(key.replace("servico_", ""));
@@ -73,7 +70,7 @@ public class EventoController {
                 es.setEvento(evento);
                 es.setId(new EventoServicoId(evento.getIdEvento(), servicoId));
 
-                evento.getServicos().add(es); // Adiciona à coleção existente
+                evento.getServicos().add(es);
             }
         });
 
@@ -93,7 +90,6 @@ public class EventoController {
     public ResponseEntity<Map<String, Object>> buscarPorId(@PathVariable Integer id) {
         return eventoService.buscarPorId(id)
                 .map(evento -> {
-                    // Cria um DTO manual para evitar problemas de serialização
                     Map<String, Object> response = new HashMap<>();
                     response.put("idEvento", evento.getIdEvento());
                     response.put("titulo", evento.getTitulo());
@@ -103,7 +99,6 @@ public class EventoController {
                     response.put("valorTotal", evento.getValorTotal());
                     response.put("observacoes", evento.getObservacoes());
 
-                    // Cliente
                     if(evento.getCliente() != null) {
                         Map<String, Object> clienteMap = new HashMap<>();
                         clienteMap.put("idCliente", evento.getCliente().getIdCliente());
@@ -111,7 +106,6 @@ public class EventoController {
                         response.put("cliente", clienteMap);
                     }
 
-                    // Local
                     if(evento.getLocal() != null) {
                         Map<String, Object> localMap = new HashMap<>();
                         localMap.put("idLocal", evento.getLocal().getIdLocal());
@@ -119,7 +113,6 @@ public class EventoController {
                         response.put("local", localMap);
                     }
 
-                    // Serviços
                     if(evento.getServicos() != null && !evento.getServicos().isEmpty()) {
                         List<Map<String, Object>> servicosList = evento.getServicos().stream()
                                 .map(es -> {

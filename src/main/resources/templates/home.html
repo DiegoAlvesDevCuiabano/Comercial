@@ -78,15 +78,23 @@
 
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+        const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
         for (let i = 0; i < firstDay; i++) {
-            calendarGrid.appendChild(document.createElement('div')); // células vazias
+            calendarGrid.appendChild(document.createElement('div'));
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
             const cellDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const cell = document.createElement('div');
             cell.className = 'calendar-cell';
+
+            const isToday = isCurrentMonth && day === today.getDate();
+            if (isToday) {
+                cell.classList.add('today');
+            }
+
             cell.innerHTML = `<span>${day}</span>`;
 
             const eventosDoDia = eventosDoMes.filter(e => e.dataEvento === cellDate);
@@ -102,15 +110,60 @@
         }
     }
 
+    function formatarDataBrasileira(dataIso) {
+        const [ano, mes, dia] = dataIso.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+
+    let selectedEventId = null;
+
     function openModal(date, eventos) {
-        if (!eventListElement || !detailsButton) return;
+        const eventDateDisplay = document.getElementById('eventDateDisplay');
+        const eventSelection = document.getElementById('eventSelection');
+        const detailsButton = document.getElementById('detailsButton');
+
+        selectedEventId = null; // Resetar seleção
+
+        eventDateDisplay.textContent = `Eventos para ${formatarDataBrasileira(date)}:`;
 
         if (eventos.length > 0) {
-            eventListElement.innerHTML = `<strong>Eventos para ${date}:</strong><ul>${eventos.map(e => `<li>${e.titulo}</li>`).join('')}</ul>`;
-            detailsButton.onclick = () => openDetalhes(eventos[0].idEvento);
+            let eventsHtml = '<div class="event-list">';
+
+            eventos.forEach(evento => {
+                eventsHtml += `
+                <div class="event-item" data-event-id="${evento.idEvento}">
+                    <h6>${evento.titulo}</h6>
+                </div>
+            `;
+            });
+
+            eventsHtml += '</div>';
+            eventSelection.innerHTML = eventsHtml;
+
+            document.querySelectorAll('.event-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('.event-item').forEach(i => {
+                        i.classList.remove('selected');
+                    });
+
+                    this.classList.add('selected');
+                    selectedEventId = this.getAttribute('data-event-id');
+                });
+            });
+
+            detailsButton.onclick = () => {
+                if (selectedEventId) {
+                    openDetalhes(selectedEventId);
+                    eventModal.hide();
+                } else {
+                    alert('Por favor, selecione um evento para ver os detalhes');
+                }
+            };
+
             detailsButton.style.display = 'inline-block';
         } else {
-            eventListElement.textContent = `Nenhum evento disponível para ${date}.`;
+            eventSelection.innerHTML = '<p>Nenhum evento disponível para este dia.</p>';
             detailsButton.style.display = 'none';
         }
 
@@ -125,7 +178,9 @@
                 <p><strong>Título:</strong> ${data.titulo}</p>
                 <p><strong>Cliente:</strong> ${data.cliente.nome}</p>
                 <p><strong>Local:</strong> ${data.local.nome}</p>
-                <p><strong>Data:</strong> ${data.dataEvento}</p>
+                <p><strong>Data:</strong> ${formatarDataBrasileira(data.dataEvento)}</p>
+                <p><strong>Hora Início:</strong> ${data.horaInicio}</p>
+                <p><strong>Hora Fim:</strong> ${data.horaFim}</p>
                 <p><strong>Valor Total:</strong> R$ ${data.valorTotal.toFixed(2).replace('.', ',')}</p>
             `;
                 document.getElementById('eventDetailsContent').innerHTML = content;

@@ -7,6 +7,51 @@
 <body>
 <header th:replace="~{fragments/header :: header}"></header>
 <nav th:replace="~{fragments/menu :: menu}"></nav>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkboxes = document.querySelectorAll('[id^="servico_"]');
+        const valorTotalInputHidden = document.getElementById('valorTotal');
+        const valorTotalInputBR = document.getElementById('valorTotalBr');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', calcularValorTotal);
+        });
+
+        document.querySelectorAll('[id^="quantidade_"]').forEach(input => {
+            input.addEventListener('input', calcularValorTotal);
+        });
+
+        function calcularValorTotal() {
+            let total = 0;
+
+            checkboxes.forEach(checkbox => {
+                const id = checkbox.id.replace('servico_', '');
+                const quantidadeInput = document.getElementById('quantidade_' + id);
+                const label = document.querySelector('label[for="servico_' + id + '"]');
+
+                if (checkbox.checked && quantidadeInput && label) {
+                    const texto = label.textContent;
+                    const match = texto.match(/R\$ ([\d.]+)/);
+
+                    if (match) {
+                        let preco = parseFloat(match[1]);
+                        let qtd = parseInt(quantidadeInput.value || '1');
+
+                        total += preco * qtd;
+                    }
+                }
+            });
+
+            valorTotalInputBR.value = total.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+
+            valorTotalInputHidden.value = total.toFixed(2);
+        }
+    });
+</script>
+
 
 <main class="py-4">
     <div class="clientes-container animate__animated animate__fadeIn">
@@ -41,7 +86,7 @@
                     <td th:text="${#temporals.format(evento.dataEvento, 'dd/MM/yyyy')}">01/01/2025</td>
                     <td th:text="${evento.horaInicio}">10:00</td>
                     <td th:text="${evento.horaFim}">12:00</td>
-                    <td th:text="${#numbers.formatDecimal(evento.valorTotal, 1, 'COMMA', 2, 'POINT')}">0,00</td>
+                    <td th:text="${#numbers.formatDecimal(evento.valorTotal, 1, 'POINT', 2, 'COMMA')}">0,00</td>
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-primary me-2"
                                 th:onclick="'carregarEventoParaEdicao(' + ${evento.idEvento} + ')'"
@@ -93,10 +138,6 @@
                                 <input type="time" class="form-control" id="horaInicio" name="horaInicio" required>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="horaFim" class="form-label">Hora de Fim *</label>
-                                <input type="time" class="form-control" id="horaFim" name="horaFim" required>
-                            </div>
                         </div>
 
                         <div class="col-md-6">
@@ -125,23 +166,26 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="valorTotal" class="form-label">Valor Total</label>
-                                <input type="number" step="0.01" class="form-control" id="valorTotal" name="valorTotal">
+                                <label for="horaFim" class="form-label">Hora de Fim *</label>
+                                <input type="time" class="form-control" id="horaFim" name="horaFim" required>
                             </div>
+
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Serviços</label>
-                        <div class="row">
-                            <div th:each="s : ${servicos}" class="col-md-6 mb-3">
+                        <div class="d-flex flex-column">
+                            <div th:each="s : ${servicos}" class="mb-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox"
                                            th:id="'servico_' + ${s.idServico}"
-                                           th:name="'servico_' + ${s.idServico}">
+                                           th:name="'servico_' + ${s.idServico}"
+                                           th:data-preco="${s.precoUnitario}">
                                     <label class="form-check-label d-block"
-                                           th:for="'servico_' + ${s.idServico}"
-                                           th:text="${s.nome + ' (R$ ' + #numbers.formatDecimal(s.precoUnitario, 1, 'COMMA', 2, 'POINT') + ')'}">
+                                           th:for="'servico_' + ${s.idServico}">
+                                        <span th:text="${s.nome}"></span>
+                                        (R$ <span th:text="${#numbers.formatDecimal(s.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></span>)
                                     </label>
                                     <div class="input-group mt-1">
                                         <span class="input-group-text">Qtd:</span>
@@ -154,6 +198,14 @@
                             </div>
                         </div>
                     </div>
+
+
+                    <div class="mb-3">
+                        <label for="valorTotalBr" class="form-label">Valor Total</label>
+                        <input type="text" class="form-control" id="valorTotalBr" readonly>
+                    </div>
+                    <input type="hidden" id="valorTotal" name="valorTotal">
+
 
                     <div class="mb-3">
                         <label for="observacoes" class="form-label">Observações</label>
@@ -184,7 +236,6 @@
                 return res.json();
             })
             .then(evento => {
-                // Preenche campos básicos
                 document.getElementById('eventoId').value = evento.idEvento || '';
                 document.getElementById('titulo').value = evento.titulo || '';
                 document.getElementById('dataEvento').value = evento.dataEvento || '';
@@ -193,7 +244,6 @@
                 document.getElementById('valorTotal').value = evento.valorTotal || '';
                 document.getElementById('observacoes').value = evento.observacoes || '';
 
-                // Preenche cliente e local
                 if (evento.cliente) {
                     document.getElementById('cliente').value = evento.cliente.idCliente;
                 }
@@ -201,7 +251,6 @@
                     document.getElementById('local').value = evento.local.idLocal;
                 }
 
-                // Limpa seleções anteriores
                 document.querySelectorAll('[id^="servico_"]').forEach(checkbox => {
                     checkbox.checked = false;
                 });
@@ -209,7 +258,6 @@
                     input.value = '1';
                 });
 
-                // Preenche serviços com quantidades
                 if (evento.servicos && evento.servicos.length > 0) {
                     evento.servicos.forEach(item => {
                         const servicoId = item.servico.idServico;
@@ -235,7 +283,6 @@
     }
 
     function limparFormulario() {
-        // Limpa campos básicos
         document.getElementById('modalTitle').textContent = 'Novo Evento';
         document.getElementById('eventoId').value = '';
         document.getElementById('titulo').value = '';
@@ -247,7 +294,6 @@
         document.getElementById('cliente').value = '';
         document.getElementById('local').value = '';
 
-        // Limpa serviços
         document.querySelectorAll('[id^="servico_"]').forEach(checkbox => {
             checkbox.checked = false;
         });

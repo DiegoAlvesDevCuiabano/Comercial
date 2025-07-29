@@ -31,7 +31,6 @@ public class EventoService {
 
     @Transactional
     public Evento salvar(Evento evento) {
-        // Para eventos existentes, o Hibernate irá gerenciar a coleção automaticamente
         return repository.save(evento);
     }
 
@@ -43,9 +42,7 @@ public class EventoService {
 
     @Transactional
     public void deletar(Integer id) {
-        // Primeiro remove as associações com serviços
         eventoServicoRepository.deleteByEventoId(id);
-        // Depois remove o evento
         repository.deleteById(id);
     }
 }
