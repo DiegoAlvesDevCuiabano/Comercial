@@ -437,3 +437,27 @@ footer {
         justify-content: center;
     }
 }
+
+.servicos-section {
+    border: 1px solid #cce0ff;
+    background-color: #f2f8ff;
+    margin-bottom: 1.5rem;
+}
+
+.servicos-section .servicos-title {
+    font-weight: 600;
+    color: var(--senai-blue);
+    border-bottom: 1px solid #cce0ff;
+    padding-bottom: 0.3rem;
+}
+
+.servicos-table th,
+.servicos-table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.servicos-table thead {
+    background-color: #e6f0ff;
+}
+

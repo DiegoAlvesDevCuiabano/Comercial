@@ -25,8 +25,11 @@ public class Evento {
     @Column(nullable = false, length = 100)
     private String titulo;
 
-    @Column(nullable = false, name = "data_evento")
-    private LocalDate dataEvento;
+    @Column(nullable = false, name = "data_inicio")
+    private LocalDate dataInicio;
+
+    @Column(nullable = false, name = "data_fim")
+    private LocalDate dataFim;
 
     @Column(nullable = false, name = "hora_inicio")
     private LocalTime horaInicio;
@@ -45,6 +48,12 @@ public class Evento {
     @Column(name = "valor_total", columnDefinition = "DECIMAL(10,2)")
     private Double valorTotal;
 
+    @Column(name = "desconto_valor", columnDefinition = "DECIMAL(10,2)")
+    private Double descontoValor;
+
+    @Column(name = "desconto_percentual", columnDefinition = "DECIMAL(5,2)")
+    private Double descontoPercentual;
+
     @Column(columnDefinition = "TEXT")
     private String observacoes;
 
@@ -57,7 +66,14 @@ public class Evento {
         eventoServico.setEvento(this);
         eventoServico.setServico(servico);
         eventoServico.setQuantidade(quantidade);
-        eventoServico.setId(new EventoServicoId(this.idEvento, servico.getIdServico()));
+
+        EventoServicoId id = new EventoServicoId();
+        id.setEventoId(this.getIdEvento());
+        id.setServicoId(servico.getIdServico());
+        eventoServico.setId(id);
+
         servicos.add(eventoServico);
     }
+
+
 }

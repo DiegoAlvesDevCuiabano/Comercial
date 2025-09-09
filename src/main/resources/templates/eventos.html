@@ -7,51 +7,6 @@
 <body>
 <header th:replace="~{fragments/header :: header}"></header>
 <nav th:replace="~{fragments/menu :: menu}"></nav>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const checkboxes = document.querySelectorAll('[id^="servico_"]');
-        const valorTotalInputHidden = document.getElementById('valorTotal');
-        const valorTotalInputBR = document.getElementById('valorTotalBr');
-
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', calcularValorTotal);
-        });
-
-        document.querySelectorAll('[id^="quantidade_"]').forEach(input => {
-            input.addEventListener('input', calcularValorTotal);
-        });
-
-        function calcularValorTotal() {
-            let total = 0;
-
-            checkboxes.forEach(checkbox => {
-                const id = checkbox.id.replace('servico_', '');
-                const quantidadeInput = document.getElementById('quantidade_' + id);
-                const label = document.querySelector('label[for="servico_' + id + '"]');
-
-                if (checkbox.checked && quantidadeInput && label) {
-                    const texto = label.textContent;
-                    const match = texto.match(/R\$ ([\d.]+)/);
-
-                    if (match) {
-                        let preco = parseFloat(match[1]);
-                        let qtd = parseInt(quantidadeInput.value || '1');
-
-                        total += preco * qtd;
-                    }
-                }
-            });
-
-            valorTotalInputBR.value = total.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            });
-
-            valorTotalInputHidden.value = total.toFixed(2);
-        }
-    });
-</script>
-
 
 <main class="py-4">
     <div class="clientes-container animate__animated animate__fadeIn">
@@ -59,7 +14,8 @@
 
         <div class="clientes-header">
             <h3 class="clientes-title">Lista de Eventos Cadastrados</h3>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventoModal" onclick="limparFormulario()">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventoModal"
+                    onclick="limparFormulario()">
                 <i class="fas fa-plus me-1"></i> Novo Evento
             </button>
         </div>
@@ -83,7 +39,11 @@
                 <tbody>
                 <tr th:each="evento : ${eventos}" class="animate__animated animate__fadeInUp">
                     <td th:text="${evento.titulo}">Título</td>
-                    <td th:text="${#temporals.format(evento.dataEvento, 'dd/MM/yyyy')}">01/01/2025</td>
+                    <td th:text="${evento.dataInicio != null && evento.dataFim != null
+             ? #temporals.format(evento.dataInicio, 'dd/MM/yyyy') + ' - ' + #temporals.format(evento.dataFim, 'dd/MM/yyyy')
+             : ''}">
+                    </td>
+
                     <td th:text="${evento.horaInicio}">10:00</td>
                     <td th:text="${evento.horaFim}">12:00</td>
                     <td th:text="${#numbers.formatDecimal(evento.valorTotal, 1, 'POINT', 2, 'COMMA')}">0,00</td>
@@ -93,7 +53,8 @@
                                 data-bs-toggle="modal" data-bs-target="#eventoModal">
                             <i class="fas fa-edit"></i> Editar
                         </button>
-                        <form th:action="@{'/eventos/excluir/' + ${evento.idEvento}}" method="post" style="display:inline;">
+                        <form th:action="@{'/eventos/excluir/' + ${evento.idEvento}}" method="post"
+                              style="display:inline;">
                             <button type="submit" class="btn btn-sm btn-outline-danger"
                                     onclick="return confirm('Deseja realmente excluir este evento?')">
                                 <i class="fas fa-trash-alt"></i> Excluir
@@ -115,9 +76,10 @@
         <div class="modal-content animate__animated animate__fadeInDown">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="modalTitle">Novo Evento</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
             </div>
-            <form th:action="@{/eventos/salvar}" method="post">
+            <form th:action="@{/eventos/salvar}" method="post" id="eventoForm">
                 <div class="modal-body">
                     <input type="hidden" name="idEvento" id="eventoId">
 
@@ -127,91 +89,96 @@
                                 <label for="titulo" class="form-label">Título *</label>
                                 <input type="text" class="form-control" id="titulo" name="titulo" required>
                             </div>
-
                             <div class="mb-3">
-                                <label for="dataEvento" class="form-label">Data *</label>
-                                <input type="date" class="form-control" id="dataEvento" name="dataEvento" required>
-                            </div>
+                                <label for="dataInicio" class="form-label">Data de Início *</label>
+                                <input type="date" class="form-control" id="dataInicio" name="dataInicio" required>
 
+                                <label for="dataFim" class="form-label">Data de Fim *</label>
+                                <input type="date" class="form-control" id="dataFim" name="dataFim" required>
+                            </div>
                             <div class="mb-3">
                                 <label for="horaInicio" class="form-label">Hora de Início *</label>
                                 <input type="time" class="form-control" id="horaInicio" name="horaInicio" required>
                             </div>
-
                         </div>
-
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="cliente" class="form-label">Cliente *</label>
                                 <select class="form-select" id="cliente" name="cliente.id" required>
                                     <option value="">Selecione...</option>
-                                    <option th:each="c : ${clientes}"
-                                            th:value="${c.idCliente}"
-                                            th:text="${c.nome}">
+                                    <option th:each="c : ${clientes}" th:value="${c.idCliente}" th:text="${c.nome}">
                                         Cliente
                                     </option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label for="local" class="form-label">Local *</label>
                                 <select class="form-select" id="local" name="local.id" required>
                                     <option value="">Selecione...</option>
-                                    <option th:each="l : ${locais}"
-                                            th:value="${l.idLocal}"
-                                            th:text="${l.nome}">
-                                        Local
+                                    <option th:each="l : ${locais}" th:value="${l.idLocal}" th:text="${l.nome}">Local
                                     </option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label for="horaFim" class="form-label">Hora de Fim *</label>
                                 <input type="time" class="form-control" id="horaFim" name="horaFim" required>
                             </div>
-
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Serviços</label>
-                        <div class="d-flex flex-column">
-                            <div th:each="s : ${servicos}" class="mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox"
-                                           th:id="'servico_' + ${s.idServico}"
-                                           th:name="'servico_' + ${s.idServico}"
-                                           th:data-preco="${s.precoUnitario}">
-                                    <label class="form-check-label d-block"
-                                           th:for="'servico_' + ${s.idServico}">
-                                        <span th:text="${s.nome}"></span>
-                                        (R$ <span th:text="${#numbers.formatDecimal(s.precoUnitario, 1, 'POINT', 2, 'COMMA')}"></span>)
-                                    </label>
-                                    <div class="input-group mt-1">
-                                        <span class="input-group-text">Qtd:</span>
-                                        <input type="number" class="form-control"
-                                               th:id="'quantidade_' + ${s.idServico}"
-                                               th:name="'quantidade_' + ${s.idServico}"
-                                               min="1" value="1">
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="mb-3 servicos-section p-3 rounded">
+                        <h6 class="servicos-title mb-3">Serviços</h6>
+                        <div class="d-flex mb-2">
+                            <select class="form-select" id="servicoSelect">
+                                <option value="">Selecione um serviço...</option>
+                                <option th:each="s : ${servicos}" th:value="${s.idServico}"
+                                        th:data-preco="${s.precoUnitario}"
+                                        th:text="${s.nome + ' (R$ ' + #numbers.formatDecimal(s.precoUnitario,1,'POINT',2,'COMMA') + ')'}"></option>
+                            </select>
+                            <button type="button" class="btn btn-secondary ms-2" id="addServicoBtn">Adicionar</button>
                         </div>
-                    </div>
 
+                        <table id="servicosSelecionadosTable" class="table table-sm servicos-table">
+                            <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Qtd</th>
+                                <th>Preço Unit.</th>
+                                <th>Total</th>
+                                <th>Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
 
                     <div class="mb-3">
                         <label for="valorTotalBr" class="form-label">Valor Total</label>
                         <input type="text" class="form-control" id="valorTotalBr" readonly>
                     </div>
-                    <input type="hidden" id="valorTotal" name="valorTotal">
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="descontoValor" class="form-label">Desconto (R$)</label>
+                            <input type="number" step="0.01" class="form-control" id="descontoValor"
+                                   name="descontoValor" value="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="descontoPercentualExibicao" class="form-label">% Desconto</label>
+                            <input type="text" class="form-control" id="descontoPercentualExibicao" readonly>
+                            <input type="hidden" name="descontoPercentual" id="descontoPercentual">
+                        </div>
 
+                    </div>
+
+                    <input type="hidden" id="valorTotal" name="valorTotal">
+                    <input type="hidden" name="servicosSelecionados" id="servicosSelecionadosHidden">
 
                     <div class="mb-3">
                         <label for="observacoes" class="form-label">Observações</label>
                         <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
                     </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
@@ -221,92 +188,197 @@
     </div>
 </div>
 
-
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    function carregarEventoParaEdicao(id) {
-        fetch('eventos/buscar/' + id)
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('Erro ao buscar evento: ' + res.statusText);
-                }
-                return res.json();
-            })
-            .then(evento => {
-                document.getElementById('eventoId').value = evento.idEvento || '';
-                document.getElementById('titulo').value = evento.titulo || '';
-                document.getElementById('dataEvento').value = evento.dataEvento || '';
-                document.getElementById('horaInicio').value = evento.horaInicio || '';
-                document.getElementById('horaFim').value = evento.horaFim || '';
-                document.getElementById('valorTotal').value = evento.valorTotal || '';
-                document.getElementById('observacoes').value = evento.observacoes || '';
+    let servicosSelecionados = [];
+    let servicosTableBody;
+    let valorTotalInputBR;
+    let valorTotalInputHidden;
 
-                if (evento.cliente) {
-                    document.getElementById('cliente').value = evento.cliente.idCliente;
-                }
-                if (evento.local) {
-                    document.getElementById('local').value = evento.local.idLocal;
-                }
+    document.addEventListener('DOMContentLoaded', function () {
+        servicosTableBody = document.querySelector('#servicosSelecionadosTable tbody');
+        valorTotalInputBR = document.getElementById('valorTotalBr');
+        valorTotalInputHidden = document.getElementById('valorTotal');
 
-                document.querySelectorAll('[id^="servico_"]').forEach(checkbox => {
-                    checkbox.checked = false;
+        const servicoSelect = document.getElementById('servicoSelect');
+        const addServicoBtn = document.getElementById('addServicoBtn');
+        const form = document.getElementById('eventoForm');
+
+        addServicoBtn.addEventListener('click', () => {
+            const selectedOption = servicoSelect.options[servicoSelect.selectedIndex];
+            const servicoId = selectedOption.value;
+            if (!servicoId) return;
+
+            const preco = parseFloat(selectedOption.dataset.preco);
+            const nome = selectedOption.text;
+
+            if (servicosSelecionados.some(s => s.id == servicoId)) {
+                alert('Serviço já adicionado!');
+                return;
+            }
+
+            servicosSelecionados.push({id: servicoId, nome: nome, preco: preco, quantidade: 1});
+            atualizarTabela();
+        });
+
+        form.addEventListener('submit', e => {
+            document.getElementById('servicosSelecionadosHidden').value =
+                servicosSelecionados.map(s => s.id + ':' + s.quantidade).join(',');
+        });
+
+        window.limparFormulario = function () {
+            document.getElementById('modalTitle').textContent = 'Novo Evento';
+            form.reset();
+            servicosSelecionados = [];
+            atualizarTabela();
+        };
+
+        window.carregarEventoParaEdicao = function (id) {
+            fetch('eventos/buscar/' + id)
+                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+                .then(evento => {
+                    limparFormulario();
+                    document.getElementById('eventoId').value = evento.idEvento;
+                    document.getElementById('titulo').value = evento.titulo;
+                    document.getElementById('dataInicio').value = evento.dataInicio;
+                    document.getElementById('dataFim').value = evento.dataFim;
+                    document.getElementById('horaInicio').value = evento.horaInicio;
+                    document.getElementById('horaFim').value = evento.horaFim;
+                    document.getElementById('valorTotal').value = evento.valorTotal;
+                    document.getElementById('observacoes').value = evento.observacoes;
+                    document.getElementById('descontoValor').value = evento.descontoValor || 0;
+                    document.getElementById('descontoPercentual').value = evento.descontoPercentual ? evento.descontoPercentual.toFixed(2) + " %" : "0 %";
+                    if (evento.cliente) document.getElementById('cliente').value = evento.cliente.idCliente;
+                    if (evento.local) document.getElementById('local').value = evento.local.idLocal;
+
+                    if (evento.servicos && evento.servicos.length > 0) {
+                        const servicosFormatados = evento.servicos.map(item => ({
+                            servico: {
+                                idServico: item.servico.idServico,
+                                nome: item.servico.nome,
+                                precoUnitario: item.servico.precoUnitario
+                            },
+                            quantidade: item.quantidade
+                        }));
+                        carregarServicosExistentes(servicosFormatados);
+                    }
+
+                    document.getElementById('modalTitle').textContent = 'Editar Evento';
+                    new bootstrap.Modal(document.getElementById('eventoModal')).show();
+                })
+                .catch(err => {
+                    alert('Erro ao carregar evento.');
                 });
-                document.querySelectorAll('[id^="quantidade_"]').forEach(input => {
-                    input.value = '1';
-                });
+        };
 
-                if (evento.servicos && evento.servicos.length > 0) {
-                    evento.servicos.forEach(item => {
-                        const servicoId = item.servico.idServico;
-                        const checkbox = document.getElementById('servico_' + servicoId);
-                        const quantidadeInput = document.getElementById('quantidade_' + servicoId);
+        function carregarServicosExistentes(servicos) {
+            servicosSelecionados = servicos.map(s => ({
+                id: s.servico.idServico,
+                nome: s.servico.nome,
+                preco: s.servico.precoUnitario,
+                quantidade: s.quantidade
+            }));
+            atualizarTabela();
+        }
 
-                        if (checkbox && quantidadeInput) {
-                            checkbox.checked = true;
-                            quantidadeInput.value = item.quantidade || 1;
-                        }
-                    });
-                }
+        function atualizarTabela() {
+            servicosTableBody.innerHTML = '';
+            let total = 0;
 
-                // Atualiza título e abre o modal
-                document.getElementById('modalTitle').textContent = 'Editar Evento';
-                const modal = new bootstrap.Modal(document.getElementById('eventoModal'));
-                modal.show();
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                alert('Erro ao carregar evento: ' + error.message);
+            servicosSelecionados.forEach((s, index) => {
+                const totalItem = s.preco * s.quantidade;
+                total += totalItem;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${s.nome}</td>
+                <td><input type="number" min="1" value="${s.quantidade}" class="form-control form-control-sm quantidadeInput" data-index="${index}"></td>
+                <td>R$ ${s.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td>R$ ${totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                <td><button type="button" class="btn btn-sm btn-danger removeBtn" data-index="${index}">Remover</button></td>
+            `;
+                servicosTableBody.appendChild(row);
             });
-    }
 
-    function limparFormulario() {
-        document.getElementById('modalTitle').textContent = 'Novo Evento';
-        document.getElementById('eventoId').value = '';
-        document.getElementById('titulo').value = '';
-        document.getElementById('dataEvento').value = '';
-        document.getElementById('horaInicio').value = '';
-        document.getElementById('horaFim').value = '';
-        document.getElementById('valorTotal').value = '';
-        document.getElementById('observacoes').value = '';
-        document.getElementById('cliente').value = '';
-        document.getElementById('local').value = '';
+            valorTotalInputBR.value = total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            valorTotalInputHidden.value = total.toFixed(2);
 
-        document.querySelectorAll('[id^="servico_"]').forEach(checkbox => {
-            checkbox.checked = false;
+            document.querySelectorAll('.quantidadeInput').forEach(input => {
+                input.addEventListener('input', e => {
+                    const idx = parseInt(e.target.dataset.index);
+                    servicosSelecionados[idx].quantidade = parseInt(e.target.value) || 1;
+                    atualizarTabela();
+                });
+            });
+
+            document.querySelectorAll('.removeBtn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const idx = parseInt(e.target.dataset.index);
+                    servicosSelecionados.splice(idx, 1);
+                    atualizarTabela();
+                });
+            });
+        }
+
+        const descontoValorInput = document.getElementById('descontoValor');
+        const descontoPercentualInput = document.getElementById('descontoPercentual');
+
+        descontoValorInput.addEventListener('input', atualizarTabela);
+
+        function atualizarTabela() {
+            servicosTableBody.innerHTML = '';
+            let totalBruto = 0;
+
+            servicosSelecionados.forEach((s, index) => {
+                const totalItem = s.preco * s.quantidade;
+                totalBruto += totalItem;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${s.nome}</td>
+            <td><input type="number" min="1" value="${s.quantidade}" class="form-control form-control-sm quantidadeInput" data-index="${index}"></td>
+            <td>R$ ${s.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td>R$ ${totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            <td><button type="button" class="btn btn-sm btn-danger removeBtn" data-index="${index}">Remover</button></td>
+        `;
+                servicosTableBody.appendChild(row);
+            });
+
+            const desconto = parseFloat(descontoValorInput.value) || 0;
+            const percentual = totalBruto > 0 ? (desconto / totalBruto) * 100 : 0;
+            document.getElementById('descontoPercentualExibicao').value = percentual.toFixed(2) + " %";
+            document.getElementById('descontoPercentual').value = percentual.toFixed(2);
+            const totalComDesconto = Math.max(totalBruto - desconto, 0);
+            valorTotalInputBR.value = totalComDesconto.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            valorTotalInputHidden.value = totalComDesconto.toFixed(2);
+
+            document.querySelectorAll('.quantidadeInput').forEach(input => {
+                input.addEventListener('input', e => {
+                    const idx = parseInt(e.target.dataset.index);
+                    servicosSelecionados[idx].quantidade = parseInt(e.target.value) || 1;
+                    atualizarTabela();
+                });
+            });
+
+            document.querySelectorAll('.removeBtn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const idx = parseInt(e.target.dataset.index);
+                    servicosSelecionados.splice(idx, 1);
+                    atualizarTabela();
+                });
+            });
+        }
+
+
+        document.getElementById('eventoModal').addEventListener('hidden.bs.modal', () => {
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
         });
-        document.querySelectorAll('[id^="quantidade_"]').forEach(input => {
-            input.value = '1';
-        });
-    }
-
-    document.getElementById('eventoModal').addEventListener('hidden.bs.modal', () => {
-        document.body.classList.remove('modal-open');
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     });
-
 </script>
 
 </body>

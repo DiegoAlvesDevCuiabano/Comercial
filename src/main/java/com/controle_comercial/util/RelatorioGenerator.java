@@ -5,6 +5,7 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.time.format.DateTimeFormatter;
@@ -85,7 +86,11 @@ public class RelatorioGenerator {
         // Dados dos eventos
         for (Evento evento : eventos) {
             addCellWithHeight(table, evento.getTitulo(), NORMAL_FONT, 25);
-            addCellWithHeight(table, evento.getDataEvento().format(dateFormatter), NORMAL_FONT, 25);
+            String periodo = evento.getDataInicio().format(dateFormatter)
+                    + (evento.getDataFim() != null && !evento.getDataFim().equals(evento.getDataInicio())
+                    ? " - " + evento.getDataFim().format(dateFormatter)
+                    : "");
+            addCellWithHeight(table, periodo, NORMAL_FONT, 25);
             addCellWithHeight(table,
                     evento.getHoraInicio().format(timeFormatter) + " - " + evento.getHoraFim().format(timeFormatter),
                     NORMAL_FONT, 25);
@@ -130,7 +135,11 @@ public class RelatorioGenerator {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        adicionarLinhaTabelaDetalhes(infoTable, "Data do Evento:", evento.getDataEvento().format(dateFormatter));
+        String periodoDetalhe = evento.getDataInicio().format(dateFormatter)
+                + (evento.getDataFim() != null && !evento.getDataFim().equals(evento.getDataInicio())
+                ? " - " + evento.getDataFim().format(dateFormatter)
+                : "");
+        adicionarLinhaTabelaDetalhes(infoTable, "Data do Evento:", periodoDetalhe);
         adicionarLinhaTabelaDetalhes(infoTable, "Horário:",
                 evento.getHoraInicio().format(timeFormatter) + " - " + evento.getHoraFim().format(timeFormatter));
 
@@ -406,7 +415,11 @@ public class RelatorioGenerator {
                                      DateTimeFormatter dateFormatter,
                                      DateTimeFormatter timeFormatter) {
         addCell(table, evento.getTitulo());
-        addCell(table, evento.getDataEvento().format(dateFormatter));
+        String periodo = evento.getDataInicio().format(dateFormatter)
+                + (evento.getDataFim() != null && !evento.getDataFim().equals(evento.getDataInicio())
+                ? " - " + evento.getDataFim().format(dateFormatter)
+                : "");
+        addCell(table, periodo);
         addCell(table, evento.getHoraInicio().format(timeFormatter));
         addCell(table, evento.getHoraFim().format(timeFormatter));
         addCell(table, evento.getCliente().getNome());
