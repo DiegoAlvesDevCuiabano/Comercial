@@ -1,4 +1,7 @@
 package com.controle_comercial.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -6,23 +9,23 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@IdClass(EventoServicoId.class)
-@Table(name = "Evento_Servico")
+@Table(name = "evento_servico")
 public class EventoServico {
 
-    @Id
+    @EmbeddedId
+    private EventoServicoId id;
+
     @ManyToOne
-    @JoinColumn(name = "id_evento", nullable = false)
+    @MapsId("eventoId")
+    @JoinColumn(name = "id_evento")
+    @JsonIgnore
     private Evento evento;
 
-    @Id
     @ManyToOne
-    @JoinColumn(name = "id_servico", nullable = false)
+    @JoinColumn(name = "id_servico")
+    @JsonIgnoreProperties("eventos")
     private Servico servico;
 
     @Column(nullable = false)
     private Integer quantidade;
-
-    @Column(nullable = false, precision = 10, name = "preco_unitario", columnDefinition = "DECIMAL(10,2)")
-    private Double precoUnitario;
 }

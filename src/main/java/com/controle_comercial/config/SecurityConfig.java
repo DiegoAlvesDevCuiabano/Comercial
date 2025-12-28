@@ -33,18 +33,18 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")           // Página de login customizada
-                        .loginProcessingUrl("/login")  // Endpoint para o POST de autenticação
-                        .defaultSuccessUrl("/home", true)  // Redireciona para "/" após sucesso
-                        .failureUrl("/login?error")    // Em caso de falha de autenticação
-                        .permitAll()                   // Permitir acesso público ao login
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/home", true)
+                        .failureUrl("/login?error")
+                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
-                .csrf(Customizer.withDefaults()); // Ativa proteção CSRF
+                .csrf(Customizer.withDefaults());
 
         return http.build();
     }

@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 @Setter
 @Entity
@@ -23,4 +26,7 @@ public class Servico {
 
     @Column(nullable = false, precision = 10, name = "preco_unitario", columnDefinition = "DECIMAL(10,2)")
     private Double precoUnitario;
+
+    @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL)
+    private Set<EventoServico> eventos = new HashSet<>();
 }

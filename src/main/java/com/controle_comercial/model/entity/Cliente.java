@@ -25,5 +25,5 @@ public class Cliente {
     private String email;
 
     @Column(length = 20)
-    private String documento; // CPF ou CNPJ
+    private String documento;
 }

@@ -1,43 +1,73 @@
 package com.controle_comercial.controller;
 
 import com.controle_comercial.model.entity.Evento;
+import com.controle_comercial.service.ClienteService;
 import com.controle_comercial.service.EventoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
+import com.controle_comercial.service.LocalService;
+import com.controle_comercial.service.ServicoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/eventos")
 public class EventoController {
 
-    @Autowired
-    private EventoService eventoService;
+    private final EventoService eventoService;
+    private final ServicoService servicoService;
+    private final ClienteService clienteService;
+    private final LocalService localService;
 
-    @GetMapping("/listar")
+    public EventoController(EventoService eventoService,
+                            ServicoService servicoService,
+                            ClienteService clienteService,
+                            LocalService localService) {
+        this.eventoService = eventoService;
+        this.servicoService = servicoService;
+        this.clienteService = clienteService;
+        this.localService = localService;
+    }
+
+    @GetMapping
+    public String listarEventos(Model model) {
+        model.addAttribute("eventos", eventoService.listarTodos());
+        model.addAttribute("servicos", servicoService.listarTodos());
+        model.addAttribute("clientes", clienteService.listarTodos());
+        model.addAttribute("locais", localService.listarTodos());
+        return "eventos";
+    }
+
+    @PostMapping("/salvar")
+    public String salvar(@ModelAttribute Evento evento,
+                         @RequestParam("cliente.id") Integer clienteId,
+                         @RequestParam("local.id") Integer localId,
+                         @RequestParam Map<String, String> allParams) {
+        eventoService.salvarEventoComServicos(evento, clienteId, localId, allParams);
+        return "redirect:/eventos";
+    }
+
+    @PostMapping("/excluir/{id}")
+    public String excluir(@PathVariable Integer id) {
+        eventoService.deletar(id);
+        return "redirect:/eventos";
+    }
+
+    @GetMapping("/buscar/{id}")
     @ResponseBody
-    public List<Evento> listarEventos() {
-        return eventoService.listarTodos();
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> buscarPorId(@PathVariable Integer id) {
+        return eventoService.buscarEventoParaEdicao(id);
     }
 
-    @GetMapping("/{id}")
-    public String detalhesEvento(@PathVariable Integer id, Model model) {
-        Evento evento = eventoService.buscarPorId(id);
-        model.addAttribute("evento", evento);
-        return "eventos/detalhes"; // Renderiza o arquivo templates/eventos/detalhes.html
-    }
-
-    @GetMapping("/data")
-    public String listarPorData(@RequestParam("data") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data, Model model) {
-        List<Evento> eventos = eventoService.listarPorData(data);
-        model.addAttribute("eventos", eventos);
-        model.addAttribute("data", data);
-        return "eventos/lista";
+    @GetMapping("/api/eventos")
+    @ResponseBody
+    public List<Map<String, Object>> eventosPorPeriodo(@RequestParam String inicio, @RequestParam String fim) {
+        return eventoService.listarEventosPorPeriodo(inicio, fim);
     }
 
 }
-

@@ -28,7 +28,6 @@ public class UsuarioDetailsService implements UserDetailsService {
 
         logger.info("Iniciando o processo de autenticação para o usuário: {}", username);
 
-        // Busca o usuário no repositório
         Usuario usuario = usuarioRepository.findByUsuario(username)
                 .orElseThrow(() -> {
                     logger.error("Usuário não encontrado: {}", username);
@@ -39,14 +38,11 @@ public class UsuarioDetailsService implements UserDetailsService {
         logger.debug("Status do usuário: {}", usuario.getStatus());
         logger.debug("Hash da senha do usuário: {}", usuario.getSenha());
 
-        // Construção do UserDetails
         UserDetails userDetails = User.builder()
                 .username(usuario.getUsuario())
                 .password(usuario.getSenha())
-                .authorities("ROLE_" + usuario.getStatus().toUpperCase()) // Ex: "ROLE_MASTER"
+                .authorities("ROLE_" + usuario.getStatus().toUpperCase())
                 .build();
-
-
 
         logger.info("UserDetails criado com sucesso para o usuário: {}", username);
 
