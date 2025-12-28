@@ -36,7 +36,6 @@ public class UsuarioDetailsService implements UserDetailsService {
 
         logger.info("Usuário encontrado no banco de dados: {}", usuario.getUsuario());
         logger.debug("Status do usuário: {}", usuario.getStatus());
-        logger.debug("Hash da senha do usuário: {}", usuario.getSenha());
 
         UserDetails userDetails = User.builder()
                 .username(usuario.getUsuario())
