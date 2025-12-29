@@ -1,0 +1,6 @@
+# Configuração local de exemplo
+# Copie este arquivo para application-local.properties
+
+spring.datasource.url=jdbc:mysql://localhost:3306/comercial_dev?useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=root

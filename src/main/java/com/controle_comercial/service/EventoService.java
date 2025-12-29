@@ -153,9 +153,10 @@ public class EventoService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarEventosPorPeriodo(String inicio, String fim) {
-        return listarTodos().stream()
-                .filter(e -> !e.getDataInicio().isBefore(LocalDate.parse(inicio)) &&
-                        !e.getDataFim().isAfter(LocalDate.parse(fim)))
+        LocalDate dataInicio = LocalDate.parse(inicio);
+        LocalDate dataFim = LocalDate.parse(fim);
+
+        return repository.findByPeriodo(dataInicio, dataFim).stream()
                 .map(e -> {
                     Map<String, Object> mapa = new HashMap<>();
                     mapa.put("idEvento", e.getIdEvento());
