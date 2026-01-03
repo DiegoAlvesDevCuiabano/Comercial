@@ -1,5 +1,6 @@
 package com.controle_comercial.service;
 
+import com.controle_comercial.exception.ClienteNotFoundException;
 import com.controle_comercial.model.entity.Cliente;
 import com.controle_comercial.repository.ClienteRepository;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ public class ClienteService {
                         existente.setEmail(cliente.getEmail());
                         return clienteRepository.save(existente);
                     })
-                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                    .orElseThrow(() -> new ClienteNotFoundException(cliente.getIdCliente()));
         }
         // Criação
         return clienteRepository.save(cliente);
