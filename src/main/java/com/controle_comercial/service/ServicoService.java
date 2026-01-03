@@ -1,5 +1,6 @@
 package com.controle_comercial.service;
 
+import com.controle_comercial.exception.ServicoNotFoundException;
 import com.controle_comercial.model.entity.Servico;
 import com.controle_comercial.repository.ServicoRepository;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class ServicoService {
                         existente.setPrecoUnitario(servico.getPrecoUnitario());
                         return repository.save(existente);
                     })
-                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+                    .orElseThrow(() -> new ServicoNotFoundException(servico.getIdServico()));
         }
         return repository.save(servico);
     }

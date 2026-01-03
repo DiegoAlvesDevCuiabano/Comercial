@@ -1,11 +1,17 @@
 package com.controle_comercial.service;
 
+import com.controle_comercial.exception.ClienteNotFoundException;
+import com.controle_comercial.exception.LocalNotFoundException;
+import com.controle_comercial.exception.ServicoNotFoundException;
+import com.controle_comercial.exception.ValidationException;
 import com.controle_comercial.model.entity.Cliente;
 import com.controle_comercial.model.entity.Evento;
 import com.controle_comercial.model.entity.Local;
 import com.controle_comercial.model.entity.Servico;
 import com.controle_comercial.repository.EventoRepository;
 import com.controle_comercial.repository.EventoServicoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class EventoService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EventoService.class);
 
     private final EventoRepository repository;
     private final EventoServicoRepository eventoServicoRepository;
@@ -63,9 +71,9 @@ public class EventoService {
     public Evento salvarEventoComServicos(Evento evento, Integer clienteId, Integer localId, Map<String, String> params) {
 
         Cliente cliente = clienteService.buscarPorId(clienteId)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new ClienteNotFoundException(clienteId));
         Local local = localService.buscarPorId(localId)
-                .orElseThrow(() -> new RuntimeException("Local não encontrado"));
+                .orElseThrow(() -> new LocalNotFoundException(localId));
         evento.setCliente(cliente);
         evento.setLocal(local);
 
@@ -83,14 +91,35 @@ public class EventoService {
 
         evento.getServicos().clear();
         String[] servicosIds = params.getOrDefault("servicosSelecionados", "").split(",");
+
         for (String s : servicosIds) {
-            if (s.isEmpty()) continue;
-            String[] parts = s.split(":");
-            Integer servicoId = Integer.parseInt(parts[0]);
-            Integer quantidade = Integer.parseInt(parts[1]);
+            String servicoStr = s.trim();
+            if (servicoStr.isEmpty()) continue;
+
+            String[] parts = servicoStr.split(":");
+            if (parts.length != 2) {
+                throw new ValidationException(
+                    "Formato de serviço inválido: '" + servicoStr + "'. Esperado: 'id:quantidade'"
+                );
+            }
+
+            Integer servicoId;
+            Integer quantidade;
+            try {
+                servicoId = Integer.parseInt(parts[0].trim());
+                quantidade = Integer.parseInt(parts[1].trim());
+            } catch (NumberFormatException e) {
+                throw new ValidationException(
+                    "ID ou quantidade inválidos no serviço: '" + servicoStr + "'", e
+                );
+            }
+
+            if (quantidade <= 0) {
+                throw new ValidationException("Quantidade deve ser maior que zero. Serviço ID: " + servicoId);
+            }
 
             Servico servico = servicoService.buscarPorId(servicoId)
-                    .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+                    .orElseThrow(() -> new ServicoNotFoundException(servicoId));
 
             evento.adicionarServico(servico, quantidade);
         }

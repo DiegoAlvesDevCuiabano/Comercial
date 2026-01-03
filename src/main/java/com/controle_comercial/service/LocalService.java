@@ -1,5 +1,6 @@
 package com.controle_comercial.service;
 
+import com.controle_comercial.exception.LocalNotFoundException;
 import com.controle_comercial.model.entity.Local;
 import com.controle_comercial.repository.LocalRepository;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class LocalService {
                         existente.setCapacidade(local.getCapacidade());
                         return repository.save(existente);
                     })
-                    .orElseThrow(() -> new RuntimeException("Local não encontrado"));
+                    .orElseThrow(() -> new LocalNotFoundException(local.getIdLocal()));
         }
         return repository.save(local);
     }
