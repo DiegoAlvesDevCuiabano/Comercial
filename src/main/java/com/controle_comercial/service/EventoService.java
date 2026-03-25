@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -77,16 +79,17 @@ public class EventoService {
         evento.setCliente(cliente);
         evento.setLocal(local);
 
-        Double descontoValor = params.containsKey("descontoValor")
-                ? Double.parseDouble(params.get("descontoValor"))
-                : 0.0;
+        BigDecimal descontoValor = params.containsKey("descontoValor")
+                ? new BigDecimal(params.get("descontoValor"))
+                : BigDecimal.ZERO;
         evento.setDescontoValor(descontoValor);
 
-        if (evento.getValorTotal() != null && evento.getValorTotal() > 0) {
-            double perc = (descontoValor / (evento.getValorTotal() + descontoValor)) * 100;
+        if (evento.getValorTotal() != null && evento.getValorTotal().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal base = evento.getValorTotal().add(descontoValor);
+            BigDecimal perc = descontoValor.multiply(new BigDecimal("100")).divide(base, 2, RoundingMode.HALF_UP);
             evento.setDescontoPercentual(perc);
         } else {
-            evento.setDescontoPercentual(0.0);
+            evento.setDescontoPercentual(BigDecimal.ZERO);
         }
 
         evento.getServicos().clear();

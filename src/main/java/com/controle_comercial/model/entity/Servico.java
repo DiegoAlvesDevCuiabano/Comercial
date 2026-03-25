@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,8 +25,8 @@ public class Servico {
     @Column(columnDefinition = "TEXT")
     private String descricao;
 
-    @Column(nullable = false, precision = 10, name = "preco_unitario", columnDefinition = "DECIMAL(10,2)")
-    private Double precoUnitario;
+    @Column(nullable = false, name = "preco_unitario", precision = 10, scale = 2)
+    private BigDecimal precoUnitario;
 
     @OneToMany(mappedBy = "servico", cascade = CascadeType.ALL)
     private Set<EventoServico> eventos = new HashSet<>();

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashSet;
@@ -45,14 +46,14 @@ public class Evento {
     @JoinColumn(name = "id_local", nullable = false)
     private Local local;
 
-    @Column(name = "valor_total", columnDefinition = "DECIMAL(10,2)")
-    private Double valorTotal;
+    @Column(name = "valor_total", precision = 10, scale = 2)
+    private BigDecimal valorTotal;
 
-    @Column(name = "desconto_valor", columnDefinition = "DECIMAL(10,2)")
-    private Double descontoValor;
+    @Column(name = "desconto_valor", precision = 10, scale = 2)
+    private BigDecimal descontoValor;
 
-    @Column(name = "desconto_percentual", columnDefinition = "DECIMAL(5,2)")
-    private Double descontoPercentual;
+    @Column(name = "desconto_percentual", precision = 5, scale = 2)
+    private BigDecimal descontoPercentual;
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;

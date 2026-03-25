@@ -8,6 +8,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class RelatorioGenerator {
 
             // Célula do valor total com formatação especial
             PdfPCell valorCell = new PdfPCell(new Phrase(
-                    "R$ " + String.format("%.2f", evento.getValorTotal()),
+                    formatarMoeda(evento.getValorTotal()),
                     BOLD_FONT));
             valorCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             valorCell.setPadding(8);
@@ -149,7 +150,7 @@ public class RelatorioGenerator {
         valorLabelCell.setPadding(10);
         infoTable.addCell(valorLabelCell);
 
-        PdfPCell valorCell = new PdfPCell(new Phrase("R$ " + String.format("%.2f", evento.getValorTotal()), TOTAL_FONT));
+        PdfPCell valorCell = new PdfPCell(new Phrase(formatarMoeda(evento.getValorTotal()), TOTAL_FONT));
         valorCell.setBorder(Rectangle.NO_BORDER);
         valorCell.setPadding(10);
         infoTable.addCell(valorCell);
@@ -267,19 +268,20 @@ public class RelatorioGenerator {
         }
 
         // Dados
-        double total = 0;
+        BigDecimal total = BigDecimal.ZERO;
         for (EventoServico es : servicos) {
             addCellWithHeight(servicosTable, es.getServico().getNome(), NORMAL_FONT, 25);
             addCellWithHeight(servicosTable, es.getQuantidade().toString(), NORMAL_FONT, 25);
             addCellWithHeight(servicosTable,
-                    "R$ " + String.format("%.2f", es.getServico().getPrecoUnitario()),
+                    formatarMoeda(es.getServico().getPrecoUnitario()),
                     NORMAL_FONT, 25);
 
-            double subtotal = es.getQuantidade() * es.getServico().getPrecoUnitario();
-            total += subtotal;
+            BigDecimal subtotal = es.getServico().getPrecoUnitario()
+                    .multiply(new BigDecimal(es.getQuantidade()));
+            total = total.add(subtotal);
 
             PdfPCell subtotalCell = new PdfPCell(new Phrase(
-                    "R$ " + String.format("%.2f", subtotal),
+                    formatarMoeda(subtotal),
                     NORMAL_FONT));
             subtotalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             subtotalCell.setPadding(8);
@@ -302,7 +304,7 @@ public class RelatorioGenerator {
         servicosTable.addCell(totalLabelCell);
 
         PdfPCell totalValueCell = new PdfPCell(new Phrase(
-                "R$ " + String.format("%.2f", total),
+                formatarMoeda(total),
                 TOTAL_FONT));
         totalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         totalValueCell.setPadding(8);
@@ -466,7 +468,7 @@ public class RelatorioGenerator {
         descCell.setHorizontalAlignment(Element.ALIGN_JUSTIFIED);
         table.addCell(descCell);
 
-        addCell(table, "R$ " + String.format("%.2f", servico.getPrecoUnitario()));
+        addCell(table, formatarMoeda(servico.getPrecoUnitario()));
     }
 
     private static void addLocaisHeader(PdfPTable table) {
@@ -490,5 +492,10 @@ public class RelatorioGenerator {
         PdfPCell cell = new PdfPCell(new Phrase(content, NORMAL_FONT));
         cell.setPadding(6);
         table.addCell(cell);
+    }
+
+    private static String formatarMoeda(BigDecimal valor) {
+        if (valor == null) return "R$ 0,00";
+        return "R$ " + String.format("%.2f", valor);
     }
 }
