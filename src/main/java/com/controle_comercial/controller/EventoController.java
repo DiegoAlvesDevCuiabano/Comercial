@@ -1,5 +1,6 @@
 package com.controle_comercial.controller;
 
+import com.controle_comercial.model.dto.EventoEditDTO;
 import com.controle_comercial.model.entity.Evento;
 import com.controle_comercial.service.ClienteService;
 import com.controle_comercial.service.EventoService;
@@ -58,7 +59,7 @@ public class EventoController {
 
     @GetMapping("/buscar/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<EventoEditDTO> buscarPorId(@PathVariable Integer id) {
         return eventoService.buscarEventoParaEdicao(id);
     }
 

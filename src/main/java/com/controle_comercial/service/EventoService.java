@@ -4,6 +4,7 @@ import com.controle_comercial.exception.ClienteNotFoundException;
 import com.controle_comercial.exception.LocalNotFoundException;
 import com.controle_comercial.exception.ServicoNotFoundException;
 import com.controle_comercial.exception.ValidationException;
+import com.controle_comercial.model.dto.EventoEditDTO;
 import com.controle_comercial.model.entity.Cliente;
 import com.controle_comercial.model.entity.Evento;
 import com.controle_comercial.model.entity.Local;
@@ -132,55 +133,9 @@ public class EventoService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Map<String, Object>> buscarEventoParaEdicao(Integer id) {
+    public ResponseEntity<EventoEditDTO> buscarEventoParaEdicao(Integer id) {
         return buscarPorId(id)
-                .map(evento -> {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("idEvento", evento.getIdEvento());
-                    response.put("titulo", evento.getTitulo());
-                    response.put("dataInicio", evento.getDataInicio().toString());
-                    response.put("dataFim", evento.getDataFim().toString());
-                    response.put("horaInicio", evento.getHoraInicio().toString());
-                    response.put("horaFim", evento.getHoraFim().toString());
-                    response.put("valorTotal", evento.getValorTotal());
-                    response.put("observacoes", evento.getObservacoes());
-                    response.put("descontoValor", evento.getDescontoValor());
-                    response.put("descontoPercentual", evento.getDescontoPercentual());
-
-                    if (evento.getCliente() != null) {
-                        Map<String, Object> clienteMap = new HashMap<>();
-                        clienteMap.put("idCliente", evento.getCliente().getIdCliente());
-                        clienteMap.put("nome", evento.getCliente().getNome());
-                        response.put("cliente", clienteMap);
-                    }
-
-                    if (evento.getLocal() != null) {
-                        Map<String, Object> localMap = new HashMap<>();
-                        localMap.put("idLocal", evento.getLocal().getIdLocal());
-                        localMap.put("nome", evento.getLocal().getNome());
-                        response.put("local", localMap);
-                    }
-
-                    if (evento.getServicos() != null && !evento.getServicos().isEmpty()) {
-                        List<Map<String, Object>> servicosList = evento.getServicos().stream()
-                                .map(es -> {
-                                    Map<String, Object> servicoMap = new HashMap<>();
-                                    servicoMap.put("quantidade", es.getQuantidade());
-                                    if (es.getServico() != null) {
-                                        Map<String, Object> s = new HashMap<>();
-                                        s.put("idServico", es.getServico().getIdServico());
-                                        s.put("nome", es.getServico().getNome());
-                                        s.put("precoUnitario", es.getServico().getPrecoUnitario());
-                                        servicoMap.put("servico", s);
-                                    }
-                                    return servicoMap;
-                                })
-                                .collect(Collectors.toList());
-                        response.put("servicos", servicosList);
-                    }
-
-                    return ResponseEntity.ok(response);
-                })
+                .map(evento -> ResponseEntity.ok(EventoEditDTO.fromEntity(evento)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
