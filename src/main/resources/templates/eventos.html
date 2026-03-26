@@ -226,6 +226,21 @@
         });
 
         form.addEventListener('submit', e => {
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+
+            if (dataFim && dataInicio && dataFim < dataInicio) {
+                e.preventDefault();
+                alert('Data de fim não pode ser anterior à data de início.');
+                return;
+            }
+
+            if (servicosSelecionados.length === 0) {
+                e.preventDefault();
+                alert('Selecione pelo menos um serviço.');
+                return;
+            }
+
             document.getElementById('servicosSelecionadosHidden').value =
                 servicosSelecionados.map(s => s.id + ':' + s.quantidade).join(',');
         });
