@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,8 +186,19 @@ public class EventoService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarEventosPorPeriodo(String inicio, String fim) {
-        LocalDate dataInicio = LocalDate.parse(inicio);
-        LocalDate dataFim = LocalDate.parse(fim);
+        LocalDate dataInicio;
+        LocalDate dataFim;
+
+        try {
+            dataInicio = LocalDate.parse(inicio);
+            dataFim = LocalDate.parse(fim);
+        } catch (DateTimeParseException e) {
+            throw new ValidationException("Formato de data inválido. Use yyyy-MM-dd", e);
+        }
+
+        if (dataFim.isBefore(dataInicio)) {
+            throw new ValidationException("Data fim não pode ser anterior a data início");
+        }
 
         return repository.findByPeriodo(dataInicio, dataFim).stream()
                 .map(e -> {
