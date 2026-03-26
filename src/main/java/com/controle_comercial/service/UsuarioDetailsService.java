@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UsuarioDetailsService implements UserDetailsService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioDetailsService.class);
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -24,7 +26,6 @@ public class UsuarioDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Logger logger = LoggerFactory.getLogger(UsuarioDetailsService.class);
 
         logger.info("Iniciando o processo de autenticação para o usuário: {}", username);
 

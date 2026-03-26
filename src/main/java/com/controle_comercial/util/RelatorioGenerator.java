@@ -8,6 +8,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
@@ -99,7 +100,7 @@ public class RelatorioGenerator {
 
             // Célula do valor total com formatação especial
             PdfPCell valorCell = new PdfPCell(new Phrase(
-                    "R$ " + String.format("%.2f", evento.getValorTotal()),
+                    formatarMoeda(evento.getValorTotal()),
                     BOLD_FONT));
             valorCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             valorCell.setPadding(8);
@@ -149,7 +150,7 @@ public class RelatorioGenerator {
         valorLabelCell.setPadding(10);
         infoTable.addCell(valorLabelCell);
 
-        PdfPCell valorCell = new PdfPCell(new Phrase("R$ " + String.format("%.2f", evento.getValorTotal()), TOTAL_FONT));
+        PdfPCell valorCell = new PdfPCell(new Phrase(formatarMoeda(evento.getValorTotal()), TOTAL_FONT));
         valorCell.setBorder(Rectangle.NO_BORDER);
         valorCell.setPadding(10);
         infoTable.addCell(valorCell);
@@ -170,20 +171,7 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarSecaoCliente(Document document, Cliente cliente) throws DocumentException {
-        // Título da seção com borda de tabela
-        PdfPTable sectionTitleTable = new PdfPTable(1);
-        sectionTitleTable.setWidthPercentage(100);
-        sectionTitleTable.setSpacingBefore(25);
-        sectionTitleTable.setSpacingAfter(15);
-
-        PdfPCell sectionTitleCell = new PdfPCell(new Phrase("Dados do Cliente", SUBTITLE_FONT));
-        sectionTitleCell.setBorder(Rectangle.BOX);
-        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
-        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sectionTitleCell.setPadding(8);
-        sectionTitleTable.addCell(sectionTitleCell);
-
-        document.add(sectionTitleTable);
+        adicionarTituloSecao(document, "Dados do Cliente");
 
         PdfPTable clienteTable = new PdfPTable(2);
         clienteTable.setWidthPercentage(100);
@@ -199,20 +187,7 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarSecaoLocal(Document document, Local local) throws DocumentException {
-        // Título da seção com borda de tabela
-        PdfPTable sectionTitleTable = new PdfPTable(1);
-        sectionTitleTable.setWidthPercentage(100);
-        sectionTitleTable.setSpacingBefore(25);
-        sectionTitleTable.setSpacingAfter(15);
-
-        PdfPCell sectionTitleCell = new PdfPCell(new Phrase("Local do Evento", SUBTITLE_FONT));
-        sectionTitleCell.setBorder(Rectangle.BOX);
-        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
-        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sectionTitleCell.setPadding(8);
-        sectionTitleTable.addCell(sectionTitleCell);
-
-        document.add(sectionTitleTable);
+        adicionarTituloSecao(document, "Local do Evento");
 
         PdfPTable localTable = new PdfPTable(2);
         localTable.setWidthPercentage(100);
@@ -228,20 +203,7 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarSecaoServicos(Document document, Set<EventoServico> servicos) throws DocumentException {
-        // Título da seção com borda de tabela
-        PdfPTable sectionTitleTable = new PdfPTable(1);
-        sectionTitleTable.setWidthPercentage(100);
-        sectionTitleTable.setSpacingBefore(25);
-        sectionTitleTable.setSpacingAfter(15);
-
-        PdfPCell sectionTitleCell = new PdfPCell(new Phrase("Serviços Contratados", SUBTITLE_FONT));
-        sectionTitleCell.setBorder(Rectangle.BOX);
-        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
-        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sectionTitleCell.setPadding(8);
-        sectionTitleTable.addCell(sectionTitleCell);
-
-        document.add(sectionTitleTable);
+        adicionarTituloSecao(document, "Serviços Contratados");
 
         if (servicos.isEmpty()) {
             Paragraph noServices = new Paragraph("Nenhum serviço contratado para este evento.", NORMAL_FONT);
@@ -267,19 +229,20 @@ public class RelatorioGenerator {
         }
 
         // Dados
-        double total = 0;
+        BigDecimal total = BigDecimal.ZERO;
         for (EventoServico es : servicos) {
             addCellWithHeight(servicosTable, es.getServico().getNome(), NORMAL_FONT, 25);
             addCellWithHeight(servicosTable, es.getQuantidade().toString(), NORMAL_FONT, 25);
             addCellWithHeight(servicosTable,
-                    "R$ " + String.format("%.2f", es.getServico().getPrecoUnitario()),
+                    formatarMoeda(es.getServico().getPrecoUnitario()),
                     NORMAL_FONT, 25);
 
-            double subtotal = es.getQuantidade() * es.getServico().getPrecoUnitario();
-            total += subtotal;
+            BigDecimal subtotal = es.getServico().getPrecoUnitario()
+                    .multiply(new BigDecimal(es.getQuantidade()));
+            total = total.add(subtotal);
 
             PdfPCell subtotalCell = new PdfPCell(new Phrase(
-                    "R$ " + String.format("%.2f", subtotal),
+                    formatarMoeda(subtotal),
                     NORMAL_FONT));
             subtotalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             subtotalCell.setPadding(8);
@@ -302,7 +265,7 @@ public class RelatorioGenerator {
         servicosTable.addCell(totalLabelCell);
 
         PdfPCell totalValueCell = new PdfPCell(new Phrase(
-                "R$ " + String.format("%.2f", total),
+                formatarMoeda(total),
                 TOTAL_FONT));
         totalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         totalValueCell.setPadding(8);
@@ -400,8 +363,23 @@ public class RelatorioGenerator {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    private static void addTableHeader(PdfPTable table) {
-        String[] headers = {"Título", "Data", "Hora Início", "Hora Fim", "Cliente", "Local"};
+    private static void adicionarTituloSecao(Document document, String titulo) throws DocumentException {
+        PdfPTable sectionTitleTable = new PdfPTable(1);
+        sectionTitleTable.setWidthPercentage(100);
+        sectionTitleTable.setSpacingBefore(25);
+        sectionTitleTable.setSpacingAfter(15);
+
+        PdfPCell sectionTitleCell = new PdfPCell(new Phrase(titulo, SUBTITLE_FONT));
+        sectionTitleCell.setBorder(Rectangle.BOX);
+        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
+        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        sectionTitleCell.setPadding(8);
+        sectionTitleTable.addCell(sectionTitleCell);
+
+        document.add(sectionTitleTable);
+    }
+
+    private static void adicionarCabecalhoTabela(PdfPTable table, String... headers) {
         for (String header : headers) {
             PdfPCell cell = new PdfPCell();
             cell.setBackgroundColor(new BaseColor(70, 130, 180));
@@ -409,6 +387,10 @@ public class RelatorioGenerator {
             cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
             table.addCell(cell);
         }
+    }
+
+    private static void addTableHeader(PdfPTable table) {
+        adicionarCabecalhoTabela(table, "Título", "Data", "Hora Início", "Hora Fim", "Cliente", "Local");
     }
 
     private static void addEventoRow(PdfPTable table, Evento evento,
@@ -427,14 +409,7 @@ public class RelatorioGenerator {
     }
 
     private static void addClientesHeader(PdfPTable table) {
-        String[] headers = {"Nome", "Telefone", "Email", "Documento"};
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(new BaseColor(70, 130, 180));
-            cell.setPadding(8);
-            cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
-            table.addCell(cell);
-        }
+        adicionarCabecalhoTabela(table, "Nome", "Telefone", "Email", "Documento");
     }
 
     private static void addClienteRow(PdfPTable table, Cliente cliente) {
@@ -445,14 +420,7 @@ public class RelatorioGenerator {
     }
 
     private static void addServicosHeader(PdfPTable table) {
-        String[] headers = {"Nome", "Descrição", "Preço Unitário"};
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(new BaseColor(70, 130, 180));
-            cell.setPadding(8);
-            cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
-            table.addCell(cell);
-        }
+        adicionarCabecalhoTabela(table, "Nome", "Descrição", "Preço Unitário");
     }
 
     private static void addServicoRow(PdfPTable table, Servico servico) {
@@ -466,18 +434,11 @@ public class RelatorioGenerator {
         descCell.setHorizontalAlignment(Element.ALIGN_JUSTIFIED);
         table.addCell(descCell);
 
-        addCell(table, "R$ " + String.format("%.2f", servico.getPrecoUnitario()));
+        addCell(table, formatarMoeda(servico.getPrecoUnitario()));
     }
 
     private static void addLocaisHeader(PdfPTable table) {
-        String[] headers = {"Nome", "Tipo", "Capacidade"};
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(new BaseColor(70, 130, 180));
-            cell.setPadding(8);
-            cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
-            table.addCell(cell);
-        }
+        adicionarCabecalhoTabela(table, "Nome", "Tipo", "Capacidade");
     }
 
     private static void addLocalRow(PdfPTable table, Local local) {
@@ -490,5 +451,10 @@ public class RelatorioGenerator {
         PdfPCell cell = new PdfPCell(new Phrase(content, NORMAL_FONT));
         cell.setPadding(6);
         table.addCell(cell);
+    }
+
+    private static String formatarMoeda(BigDecimal valor) {
+        if (valor == null) return "R$ 0,00";
+        return "R$ " + String.format("%.2f", valor);
     }
 }

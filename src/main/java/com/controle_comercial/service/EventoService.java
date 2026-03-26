@@ -4,6 +4,7 @@ import com.controle_comercial.exception.ClienteNotFoundException;
 import com.controle_comercial.exception.LocalNotFoundException;
 import com.controle_comercial.exception.ServicoNotFoundException;
 import com.controle_comercial.exception.ValidationException;
+import com.controle_comercial.model.dto.EventoEditDTO;
 import com.controle_comercial.model.entity.Cliente;
 import com.controle_comercial.model.entity.Evento;
 import com.controle_comercial.model.entity.Local;
@@ -16,7 +17,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,16 +81,17 @@ public class EventoService {
         evento.setCliente(cliente);
         evento.setLocal(local);
 
-        Double descontoValor = params.containsKey("descontoValor")
-                ? Double.parseDouble(params.get("descontoValor"))
-                : 0.0;
+        BigDecimal descontoValor = params.containsKey("descontoValor")
+                ? new BigDecimal(params.get("descontoValor"))
+                : BigDecimal.ZERO;
         evento.setDescontoValor(descontoValor);
 
-        if (evento.getValorTotal() != null && evento.getValorTotal() > 0) {
-            double perc = (descontoValor / (evento.getValorTotal() + descontoValor)) * 100;
+        if (evento.getValorTotal() != null && evento.getValorTotal().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal base = evento.getValorTotal().add(descontoValor);
+            BigDecimal perc = descontoValor.multiply(new BigDecimal("100")).divide(base, 2, RoundingMode.HALF_UP);
             evento.setDescontoPercentual(perc);
         } else {
-            evento.setDescontoPercentual(0.0);
+            evento.setDescontoPercentual(BigDecimal.ZERO);
         }
 
         evento.getServicos().clear();
@@ -128,62 +133,27 @@ public class EventoService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Map<String, Object>> buscarEventoParaEdicao(Integer id) {
+    public ResponseEntity<EventoEditDTO> buscarEventoParaEdicao(Integer id) {
         return buscarPorId(id)
-                .map(evento -> {
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("idEvento", evento.getIdEvento());
-                    response.put("titulo", evento.getTitulo());
-                    response.put("dataInicio", evento.getDataInicio().toString());
-                    response.put("dataFim", evento.getDataFim().toString());
-                    response.put("horaInicio", evento.getHoraInicio().toString());
-                    response.put("horaFim", evento.getHoraFim().toString());
-                    response.put("valorTotal", evento.getValorTotal());
-                    response.put("observacoes", evento.getObservacoes());
-                    response.put("descontoValor", evento.getDescontoValor());
-                    response.put("descontoPercentual", evento.getDescontoPercentual());
-
-                    if (evento.getCliente() != null) {
-                        Map<String, Object> clienteMap = new HashMap<>();
-                        clienteMap.put("idCliente", evento.getCliente().getIdCliente());
-                        clienteMap.put("nome", evento.getCliente().getNome());
-                        response.put("cliente", clienteMap);
-                    }
-
-                    if (evento.getLocal() != null) {
-                        Map<String, Object> localMap = new HashMap<>();
-                        localMap.put("idLocal", evento.getLocal().getIdLocal());
-                        localMap.put("nome", evento.getLocal().getNome());
-                        response.put("local", localMap);
-                    }
-
-                    if (evento.getServicos() != null && !evento.getServicos().isEmpty()) {
-                        List<Map<String, Object>> servicosList = evento.getServicos().stream()
-                                .map(es -> {
-                                    Map<String, Object> servicoMap = new HashMap<>();
-                                    servicoMap.put("quantidade", es.getQuantidade());
-                                    if (es.getServico() != null) {
-                                        Map<String, Object> s = new HashMap<>();
-                                        s.put("idServico", es.getServico().getIdServico());
-                                        s.put("nome", es.getServico().getNome());
-                                        s.put("precoUnitario", es.getServico().getPrecoUnitario());
-                                        servicoMap.put("servico", s);
-                                    }
-                                    return servicoMap;
-                                })
-                                .collect(Collectors.toList());
-                        response.put("servicos", servicosList);
-                    }
-
-                    return ResponseEntity.ok(response);
-                })
+                .map(evento -> ResponseEntity.ok(EventoEditDTO.fromEntity(evento)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarEventosPorPeriodo(String inicio, String fim) {
-        LocalDate dataInicio = LocalDate.parse(inicio);
-        LocalDate dataFim = LocalDate.parse(fim);
+        LocalDate dataInicio;
+        LocalDate dataFim;
+
+        try {
+            dataInicio = LocalDate.parse(inicio);
+            dataFim = LocalDate.parse(fim);
+        } catch (DateTimeParseException e) {
+            throw new ValidationException("Formato de data inválido. Use yyyy-MM-dd", e);
+        }
+
+        if (dataFim.isBefore(dataInicio)) {
+            throw new ValidationException("Data fim não pode ser anterior a data início");
+        }
 
         return repository.findByPeriodo(dataInicio, dataFim).stream()
                 .map(e -> {

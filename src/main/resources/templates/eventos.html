@@ -226,6 +226,21 @@
         });
 
         form.addEventListener('submit', e => {
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+
+            if (dataFim && dataInicio && dataFim < dataInicio) {
+                e.preventDefault();
+                alert('Data de fim não pode ser anterior à data de início.');
+                return;
+            }
+
+            if (servicosSelecionados.length === 0) {
+                e.preventDefault();
+                alert('Selecione pelo menos um serviço.');
+                return;
+            }
+
             document.getElementById('servicosSelecionadosHidden').value =
                 servicosSelecionados.map(s => s.id + ':' + s.quantidade).join(',');
         });
@@ -285,49 +300,26 @@
             atualizarTabela();
         }
 
-        function atualizarTabela() {
-            servicosTableBody.innerHTML = '';
-            let total = 0;
-
-            servicosSelecionados.forEach((s, index) => {
-                const totalItem = s.preco * s.quantidade;
-                total += totalItem;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                <td>${s.nome}</td>
-                <td><input type="number" min="1" value="${s.quantidade}" class="form-control form-control-sm quantidadeInput" data-index="${index}"></td>
-                <td>R$ ${s.preco.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td>R$ ${totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                <td><button type="button" class="btn btn-sm btn-danger removeBtn" data-index="${index}">Remover</button></td>
-            `;
-                servicosTableBody.appendChild(row);
-            });
-
-            valorTotalInputBR.value = total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            valorTotalInputHidden.value = total.toFixed(2);
-
-            document.querySelectorAll('.quantidadeInput').forEach(input => {
-                input.addEventListener('input', e => {
-                    const idx = parseInt(e.target.dataset.index);
-                    servicosSelecionados[idx].quantidade = parseInt(e.target.value) || 1;
-                    atualizarTabela();
-                });
-            });
-
-            document.querySelectorAll('.removeBtn').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    const idx = parseInt(e.target.dataset.index);
-                    servicosSelecionados.splice(idx, 1);
-                    atualizarTabela();
-                });
-            });
-        }
-
         const descontoValorInput = document.getElementById('descontoValor');
-        const descontoPercentualInput = document.getElementById('descontoPercentual');
 
         descontoValorInput.addEventListener('input', atualizarTabela);
+
+        // Event delegation para inputs de quantidade e botões de remover
+        servicosTableBody.addEventListener('input', e => {
+            if (e.target.classList.contains('quantidadeInput')) {
+                const idx = parseInt(e.target.dataset.index);
+                servicosSelecionados[idx].quantidade = parseInt(e.target.value) || 1;
+                atualizarTabela();
+            }
+        });
+
+        servicosTableBody.addEventListener('click', e => {
+            if (e.target.classList.contains('removeBtn')) {
+                const idx = parseInt(e.target.dataset.index);
+                servicosSelecionados.splice(idx, 1);
+                atualizarTabela();
+            }
+        });
 
         function atualizarTabela() {
             servicosTableBody.innerHTML = '';
@@ -355,22 +347,6 @@
             const totalComDesconto = Math.max(totalBruto - desconto, 0);
             valorTotalInputBR.value = totalComDesconto.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
             valorTotalInputHidden.value = totalComDesconto.toFixed(2);
-
-            document.querySelectorAll('.quantidadeInput').forEach(input => {
-                input.addEventListener('input', e => {
-                    const idx = parseInt(e.target.dataset.index);
-                    servicosSelecionados[idx].quantidade = parseInt(e.target.value) || 1;
-                    atualizarTabela();
-                });
-            });
-
-            document.querySelectorAll('.removeBtn').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    const idx = parseInt(e.target.dataset.index);
-                    servicosSelecionados.splice(idx, 1);
-                    atualizarTabela();
-                });
-            });
         }
 
 

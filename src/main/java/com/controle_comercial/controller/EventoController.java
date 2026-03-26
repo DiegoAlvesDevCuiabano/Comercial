@@ -1,5 +1,6 @@
 package com.controle_comercial.controller;
 
+import com.controle_comercial.model.dto.EventoEditDTO;
 import com.controle_comercial.model.entity.Evento;
 import com.controle_comercial.service.ClienteService;
 import com.controle_comercial.service.EventoService;
@@ -7,7 +8,6 @@ import com.controle_comercial.service.LocalService;
 import com.controle_comercial.service.ServicoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,8 +59,7 @@ public class EventoController {
 
     @GetMapping("/buscar/{id}")
     @ResponseBody
-    @Transactional(readOnly = true)
-    public ResponseEntity<Map<String, Object>> buscarPorId(@PathVariable Integer id) {
+    public ResponseEntity<EventoEditDTO> buscarPorId(@PathVariable Integer id) {
         return eventoService.buscarEventoParaEdicao(id);
     }
 
