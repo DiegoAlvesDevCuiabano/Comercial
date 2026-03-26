@@ -171,20 +171,7 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarSecaoCliente(Document document, Cliente cliente) throws DocumentException {
-        // Título da seção com borda de tabela
-        PdfPTable sectionTitleTable = new PdfPTable(1);
-        sectionTitleTable.setWidthPercentage(100);
-        sectionTitleTable.setSpacingBefore(25);
-        sectionTitleTable.setSpacingAfter(15);
-
-        PdfPCell sectionTitleCell = new PdfPCell(new Phrase("Dados do Cliente", SUBTITLE_FONT));
-        sectionTitleCell.setBorder(Rectangle.BOX);
-        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
-        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sectionTitleCell.setPadding(8);
-        sectionTitleTable.addCell(sectionTitleCell);
-
-        document.add(sectionTitleTable);
+        adicionarTituloSecao(document, "Dados do Cliente");
 
         PdfPTable clienteTable = new PdfPTable(2);
         clienteTable.setWidthPercentage(100);
@@ -200,20 +187,7 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarSecaoLocal(Document document, Local local) throws DocumentException {
-        // Título da seção com borda de tabela
-        PdfPTable sectionTitleTable = new PdfPTable(1);
-        sectionTitleTable.setWidthPercentage(100);
-        sectionTitleTable.setSpacingBefore(25);
-        sectionTitleTable.setSpacingAfter(15);
-
-        PdfPCell sectionTitleCell = new PdfPCell(new Phrase("Local do Evento", SUBTITLE_FONT));
-        sectionTitleCell.setBorder(Rectangle.BOX);
-        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
-        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sectionTitleCell.setPadding(8);
-        sectionTitleTable.addCell(sectionTitleCell);
-
-        document.add(sectionTitleTable);
+        adicionarTituloSecao(document, "Local do Evento");
 
         PdfPTable localTable = new PdfPTable(2);
         localTable.setWidthPercentage(100);
@@ -229,20 +203,7 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarSecaoServicos(Document document, Set<EventoServico> servicos) throws DocumentException {
-        // Título da seção com borda de tabela
-        PdfPTable sectionTitleTable = new PdfPTable(1);
-        sectionTitleTable.setWidthPercentage(100);
-        sectionTitleTable.setSpacingBefore(25);
-        sectionTitleTable.setSpacingAfter(15);
-
-        PdfPCell sectionTitleCell = new PdfPCell(new Phrase("Serviços Contratados", SUBTITLE_FONT));
-        sectionTitleCell.setBorder(Rectangle.BOX);
-        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
-        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sectionTitleCell.setPadding(8);
-        sectionTitleTable.addCell(sectionTitleCell);
-
-        document.add(sectionTitleTable);
+        adicionarTituloSecao(document, "Serviços Contratados");
 
         if (servicos.isEmpty()) {
             Paragraph noServices = new Paragraph("Nenhum serviço contratado para este evento.", NORMAL_FONT);
@@ -402,8 +363,23 @@ public class RelatorioGenerator {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    private static void addTableHeader(PdfPTable table) {
-        String[] headers = {"Título", "Data", "Hora Início", "Hora Fim", "Cliente", "Local"};
+    private static void adicionarTituloSecao(Document document, String titulo) throws DocumentException {
+        PdfPTable sectionTitleTable = new PdfPTable(1);
+        sectionTitleTable.setWidthPercentage(100);
+        sectionTitleTable.setSpacingBefore(25);
+        sectionTitleTable.setSpacingAfter(15);
+
+        PdfPCell sectionTitleCell = new PdfPCell(new Phrase(titulo, SUBTITLE_FONT));
+        sectionTitleCell.setBorder(Rectangle.BOX);
+        sectionTitleCell.setBackgroundColor(TITLE_BACKGROUND_COLOR);
+        sectionTitleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        sectionTitleCell.setPadding(8);
+        sectionTitleTable.addCell(sectionTitleCell);
+
+        document.add(sectionTitleTable);
+    }
+
+    private static void adicionarCabecalhoTabela(PdfPTable table, String... headers) {
         for (String header : headers) {
             PdfPCell cell = new PdfPCell();
             cell.setBackgroundColor(new BaseColor(70, 130, 180));
@@ -411,6 +387,10 @@ public class RelatorioGenerator {
             cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
             table.addCell(cell);
         }
+    }
+
+    private static void addTableHeader(PdfPTable table) {
+        adicionarCabecalhoTabela(table, "Título", "Data", "Hora Início", "Hora Fim", "Cliente", "Local");
     }
 
     private static void addEventoRow(PdfPTable table, Evento evento,
@@ -429,14 +409,7 @@ public class RelatorioGenerator {
     }
 
     private static void addClientesHeader(PdfPTable table) {
-        String[] headers = {"Nome", "Telefone", "Email", "Documento"};
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(new BaseColor(70, 130, 180));
-            cell.setPadding(8);
-            cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
-            table.addCell(cell);
-        }
+        adicionarCabecalhoTabela(table, "Nome", "Telefone", "Email", "Documento");
     }
 
     private static void addClienteRow(PdfPTable table, Cliente cliente) {
@@ -447,14 +420,7 @@ public class RelatorioGenerator {
     }
 
     private static void addServicosHeader(PdfPTable table) {
-        String[] headers = {"Nome", "Descrição", "Preço Unitário"};
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(new BaseColor(70, 130, 180));
-            cell.setPadding(8);
-            cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
-            table.addCell(cell);
-        }
+        adicionarCabecalhoTabela(table, "Nome", "Descrição", "Preço Unitário");
     }
 
     private static void addServicoRow(PdfPTable table, Servico servico) {
@@ -472,14 +438,7 @@ public class RelatorioGenerator {
     }
 
     private static void addLocaisHeader(PdfPTable table) {
-        String[] headers = {"Nome", "Tipo", "Capacidade"};
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(new BaseColor(70, 130, 180));
-            cell.setPadding(8);
-            cell.setPhrase(new Phrase(header, TABLE_HEADER_FONT));
-            table.addCell(cell);
-        }
+        adicionarCabecalhoTabela(table, "Nome", "Tipo", "Capacidade");
     }
 
     private static void addLocalRow(PdfPTable table, Local local) {
