@@ -58,48 +58,54 @@ header, nav, footer {
 .header-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
-.header-logo {
-    font-size: 1.8rem;
-    line-height: 1;
+.header-logo-img {
+    height: 36px;
+    width: auto;
+    filter: brightness(0) invert(1);
+}
+
+.header-separator {
+    width: 1px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .header-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: 0.02em;
 }
 
 .header-welcome {
-    font-size: 0.82rem;
-    opacity: 0.7;
+    font-size: 0.8rem;
+    opacity: 0.6;
     font-weight: 400;
 }
 
 .header-decorations {
     display: flex;
-    gap: 16px;
-    opacity: 0.25;
-    font-size: 1.4rem;
+    gap: 18px;
+    align-items: center;
 }
 
-.header-icon {
-    animation: floatIcon 3s ease-in-out infinite;
+.header-deco-icon {
+    height: 28px;
+    width: auto;
+    opacity: 0.18;
+    filter: brightness(0) invert(1);
+    animation: floatIcon 3.5s ease-in-out infinite;
 }
 
-.header-icon:nth-child(2) {
-    animation-delay: 0.5s;
-}
-
-.header-icon:nth-child(3) {
-    animation-delay: 1s;
+.header-deco-icon:nth-child(2) {
+    animation-delay: 0.7s;
 }
 
 @keyframes floatIcon {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    50% { transform: translateY(-3px); }
 }
 
 /* === MENU === */
@@ -163,18 +169,31 @@ main {
     overflow: hidden;
 }
 
-main::before {
-    content: '📊  💼  📋  📈  🏢  💰  📅  ✅';
+main::before,
+main::after {
+    content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 3rem;
-    letter-spacing: 2rem;
-    opacity: 0.04;
-    white-space: nowrap;
     pointer-events: none;
     z-index: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.04;
+}
+
+main::before {
+    width: 180px;
+    height: 180px;
+    top: 15%;
+    left: 6%;
+    background-image: url('/images/icon-evento.png');
+}
+
+main::after {
+    width: 160px;
+    height: 160px;
+    bottom: 10%;
+    right: 6%;
+    background-image: url('/images/icon-receita.png');
 }
 
 main > * {

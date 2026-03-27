@@ -6,6 +6,8 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.LineSeparator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +18,8 @@ import java.util.List;
 import java.util.Set;
 
 public class RelatorioGenerator {
+
+    private static final Logger logger = LoggerFactory.getLogger(RelatorioGenerator.class);
 
     // === CORES UniSENAI ===
     private static final BaseColor NAVY = new BaseColor(26, 35, 50);         // #1A2332
@@ -124,19 +128,34 @@ public class RelatorioGenerator {
     // =====================================================================
 
     private static void adicionarCabecalhoDocumento(Document document, String titulo) throws DocumentException {
-        // Barra navy com badge laranja
-        PdfPTable headerBar = new PdfPTable(2);
+        // Barra navy com logo + badge laranja
+        PdfPTable headerBar = new PdfPTable(3);
         headerBar.setWidthPercentage(100);
-        headerBar.setWidths(new float[]{4, 1});
+        headerBar.setWidths(new float[]{1.2f, 3.5f, 1});
         headerBar.setSpacingAfter(4);
+
+        // Logo
+        PdfPCell logoCell = new PdfPCell();
+        logoCell.setBackgroundColor(NAVY);
+        logoCell.setPadding(10);
+        logoCell.setBorder(Rectangle.NO_BORDER);
+        logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        try {
+            Image logo = Image.getInstance("src/main/resources/static/images/logo-unisenai.png");
+            logo.scaleToFit(110, 30);
+            logoCell.addElement(logo);
+        } catch (Exception e) {
+            logger.warn("Logo não encontrada, usando texto: {}", e.getMessage());
+            logoCell.addElement(new Phrase("UniSENAI", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.WHITE)));
+        }
+        headerBar.addCell(logoCell);
 
         PdfPCell brandCell = new PdfPCell();
         brandCell.setBackgroundColor(NAVY);
         brandCell.setPadding(14);
         brandCell.setBorder(Rectangle.NO_BORDER);
-        Paragraph brandP = new Paragraph();
-        brandP.add(new Chunk("UniSENAI", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.WHITE)));
-        brandP.add(new Chunk("  Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(180, 190, 210))));
+        brandCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        Paragraph brandP = new Paragraph("Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(180, 190, 210)));
         brandCell.addElement(brandP);
         headerBar.addCell(brandCell);
 

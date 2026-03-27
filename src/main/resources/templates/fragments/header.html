@@ -10,16 +10,16 @@
 
 <header th:fragment="header" class="header">
   <div class="header-brand">
-    <span class="header-logo">📊</span>
+    <img th:src="@{/images/logo-unisenai.png}" alt="UniSENAI" class="header-logo-img">
+    <div class="header-separator"></div>
     <div>
       <div class="header-title">Sistema Comercial</div>
       <div class="header-welcome">Bem-vindo, <span th:text="${userDetails.name}">Usuário</span></div>
     </div>
   </div>
   <div class="header-decorations">
-    <span class="header-icon">📋</span>
-    <span class="header-icon">💼</span>
-    <span class="header-icon">📈</span>
+    <img th:src="@{/images/icon-evento.png}" alt="" class="header-deco-icon">
+    <img th:src="@{/images/icon-receita.png}" alt="" class="header-deco-icon">
   </div>
   <form th:action="@{/logout}" method="post">
     <button type="submit" class="btn btn-outline-light btn-sm">
