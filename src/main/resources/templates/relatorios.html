@@ -15,35 +15,51 @@
 
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="card h-100 relatorio-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div style="width: 42px; height: 42px; background: rgba(99,102,241,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px;">
-                                <i class="fas fa-calendar-alt" style="color: var(--uni-indigo); font-size: 1.2rem;"></i>
+                <div class="card h-100 border-0" style="border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden;">
+                    <div style="height: 4px; background: linear-gradient(90deg, var(--uni-indigo), var(--uni-blue));"></div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-start mb-3">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05)); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 16px;">
+                                <i class="fas fa-calendar-check" style="color: var(--uni-indigo); font-size: 1.3rem;"></i>
                             </div>
-                            <h5 class="card-title mb-0" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
+                            <div>
+                                <h5 class="mb-1" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
+                                <span style="font-size: 0.8rem; color: var(--uni-indigo); font-weight: 600;">PDF</span>
+                            </div>
                         </div>
-                        <p class="card-text text-muted">Visão geral e detalhamento de todos os eventos cadastrados no sistema.</p>
-                        <a th:href="@{/relatorios/eventos}" class="btn btn-primary px-4" target="_blank">
-                            <i class="fas fa-file-pdf me-2"></i> Gerar PDF
-                        </a>
+                        <p class="text-muted mb-4" style="font-size: 0.9rem; line-height: 1.6;">
+                            Visão geral com todos os eventos em tabela, seguido de páginas detalhadas por evento com cliente, local e serviços contratados.
+                        </p>
+                        <div class="mt-auto">
+                            <a th:href="@{/relatorios/eventos}" class="btn btn-primary w-100" target="_blank" style="padding: 10px;">
+                                <i class="fas fa-file-pdf me-2"></i> Gerar Relatório de Eventos
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6">
-                <div class="card h-100 relatorio-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div style="width: 42px; height: 42px; background: rgba(99,102,241,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px;">
-                                <i class="fas fa-users" style="color: var(--uni-indigo); font-size: 1.2rem;"></i>
+                <div class="card h-100 border-0" style="border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden;">
+                    <div style="height: 4px; background: linear-gradient(90deg, var(--uni-orange), var(--uni-indigo));"></div>
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex align-items-start mb-3">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(232,93,4,0.12), rgba(232,93,4,0.04)); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 16px;">
+                                <i class="fas fa-users" style="color: var(--uni-orange); font-size: 1.3rem;"></i>
                             </div>
-                            <h5 class="card-title mb-0" style="color: var(--uni-navy); font-weight: 700;">Relatório de Cadastros</h5>
+                            <div>
+                                <h5 class="mb-1" style="color: var(--uni-navy); font-weight: 700;">Relatório de Cadastros</h5>
+                                <span style="font-size: 0.8rem; color: var(--uni-orange); font-weight: 600;">PDF</span>
+                            </div>
                         </div>
-                        <p class="card-text text-muted">Listagem completa de Clientes, Serviços e Locais cadastrados.</p>
-                        <a th:href="@{/relatorios/entidades}" class="btn btn-primary px-4" target="_blank">
-                            <i class="fas fa-file-pdf me-2"></i> Gerar PDF
-                        </a>
+                        <p class="text-muted mb-4" style="font-size: 0.9rem; line-height: 1.6;">
+                            Listagem completa de Clientes, Serviços e Locais cadastrados no sistema, cada um em sua própria página.
+                        </p>
+                        <div class="mt-auto">
+                            <a th:href="@{/relatorios/entidades}" class="btn w-100" target="_blank" style="padding: 10px; background: var(--uni-orange); border: none; color: white; border-radius: 10px; font-weight: 600;">
+                                <i class="fas fa-file-pdf me-2"></i> Gerar Relatório de Cadastros
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

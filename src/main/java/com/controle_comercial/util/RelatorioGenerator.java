@@ -134,20 +134,13 @@ public class RelatorioGenerator {
         headerBar.setWidths(new float[]{1.2f, 3.5f, 1});
         headerBar.setSpacingAfter(4);
 
-        // Logo
+        // Brand text
         PdfPCell logoCell = new PdfPCell();
         logoCell.setBackgroundColor(NAVY);
-        logoCell.setPadding(10);
+        logoCell.setPadding(12);
         logoCell.setBorder(Rectangle.NO_BORDER);
         logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        try {
-            Image logo = Image.getInstance("src/main/resources/static/images/logo-unisenai.png");
-            logo.scaleToFit(140, 36);
-            logoCell.addElement(logo);
-        } catch (Exception e) {
-            logger.warn("Logo não encontrada, usando texto: {}", e.getMessage());
-            logoCell.addElement(new Phrase("UniSENAI", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.WHITE)));
-        }
+        logoCell.addElement(new Phrase("UniSENAI", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.WHITE)));
         headerBar.addCell(logoCell);
 
         PdfPCell brandCell = new PdfPCell();
@@ -155,8 +148,7 @@ public class RelatorioGenerator {
         brandCell.setPadding(14);
         brandCell.setBorder(Rectangle.NO_BORDER);
         brandCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        Paragraph brandP = new Paragraph("Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(180, 190, 210)));
-        brandCell.addElement(brandP);
+        brandCell.addElement(new Phrase("Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(160, 175, 200))));
         headerBar.addCell(brandCell);
 
         PdfPCell badgeCell = new PdfPCell(new Phrase("RELATÓRIO", BADGE_FONT));
