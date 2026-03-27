@@ -32,6 +32,7 @@
                     <th>Data</th>
                     <th>Hora Início</th>
                     <th>Hora Fim</th>
+                    <th>Status</th>
                     <th>Valor</th>
                     <th>Ações</th>
                 </tr>
@@ -46,6 +47,10 @@
 
                     <td th:text="${evento.horaInicio}">10:00</td>
                     <td th:text="${evento.horaFim}">12:00</td>
+                    <td>
+                        <span th:class="'badge bg-' + ${evento.status.bootstrapClass}"
+                              th:text="${evento.status.descricao}">Status</span>
+                    </td>
                     <td th:text="${#numbers.formatDecimal(evento.valorTotal, 1, 'POINT', 2, 'COMMA')}">0,00</td>
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-primary me-2"
@@ -63,7 +68,7 @@
                     </td>
                 </tr>
                 <tr th:if="${eventos.size() == 0}">
-                    <td colspan="6" class="text-center py-4">Nenhum Evento Encontrado</td>
+                    <td colspan="7" class="text-center py-4">Nenhum Evento Encontrado</td>
                 </tr>
                 </tbody>
             </table>
@@ -174,6 +179,16 @@
                     <input type="hidden" name="servicosSelecionados" id="servicosSelecionadosHidden">
 
                     <div class="mb-3">
+                        <label for="status" class="form-label">Status do Evento</label>
+                        <select class="form-select" id="status" name="status">
+                            <option th:each="s : ${T(com.controle_comercial.model.entity.StatusEvento).values()}"
+                                    th:value="${s}"
+                                    th:text="${s.descricao}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="observacoes" class="form-label">Observações</label>
                         <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
                     </div>
@@ -267,6 +282,7 @@
                     document.getElementById('observacoes').value = evento.observacoes;
                     document.getElementById('descontoValor').value = evento.descontoValor || 0;
                     document.getElementById('descontoPercentual').value = evento.descontoPercentual ? evento.descontoPercentual.toFixed(2) + " %" : "0 %";
+                    if (evento.status) document.getElementById('status').value = evento.status;
                     if (evento.cliente) document.getElementById('cliente').value = evento.cliente.idCliente;
                     if (evento.local) document.getElementById('local').value = evento.local.idLocal;
 
