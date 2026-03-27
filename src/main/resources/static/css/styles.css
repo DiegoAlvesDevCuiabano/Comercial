@@ -62,9 +62,8 @@ header, nav, footer {
 }
 
 .header-logo-img {
-    height: 54px;
+    height: 40px;
     width: auto;
-    filter: brightness(0) invert(1);
 }
 
 .header-separator {
@@ -160,15 +159,23 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    background:
-        radial-gradient(ellipse 80% 60% at 15% 50%, rgba(99, 102, 241, 0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 70% 50% at 85% 40%, rgba(232, 93, 4, 0.06) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 50% 80%, rgba(66, 133, 244, 0.05) 0%, transparent 50%),
-        var(--uni-bg);
+    background: var(--uni-bg);
     position: relative;
     overflow: hidden;
 }
 
+/* SVG diagonal gradient background */
+main .bg-decoration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Ícones decorativos sutis */
 main::before,
 main::after {
     content: '';
@@ -177,22 +184,22 @@ main::after {
     z-index: 0;
     background-size: contain;
     background-repeat: no-repeat;
-    opacity: 0.04;
+    opacity: 0.035;
 }
 
 main::before {
-    width: 180px;
-    height: 180px;
-    top: 15%;
-    left: 6%;
+    width: 160px;
+    height: 160px;
+    top: 12%;
+    left: 5%;
     background-image: url('/images/icon-evento.png');
 }
 
 main::after {
-    width: 160px;
-    height: 160px;
-    bottom: 10%;
-    right: 6%;
+    width: 140px;
+    height: 140px;
+    bottom: 8%;
+    right: 5%;
     background-image: url('/images/icon-receita.png');
 }
 

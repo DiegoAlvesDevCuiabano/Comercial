@@ -8,41 +8,44 @@
 <nav th:replace="~{fragments/menu :: menu}"></nav>
 
 <main class="py-4">
+    <svg class="bg-decoration" viewBox="0 0 1000 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="grad1" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6366F1" stop-opacity="0.10"/>
+                <stop offset="40%" stop-color="#6366F1" stop-opacity="0.05"/>
+                <stop offset="100%" stop-color="#E85D04" stop-opacity="0.04"/>
+            </linearGradient>
+        </defs>
+        <path d="M1000 0 L1000 200 Q800 350 500 380 Q200 410 0 520 L0 600 L1000 600 Z" fill="url(#grad1)"/>
+        <path d="M1000 200 Q800 350 500 380 Q200 410 0 520" fill="none" stroke="#6366F1" stroke-opacity="0.12" stroke-width="1.5"/>
+    </svg>
+
     <div class="clientes-container animate__animated animate__fadeIn">
         <h2 class="mb-4">Relatórios</h2>
 
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Gerar Relatórios</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 relatorio-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Relatório de Eventos</h5>
-                                <p class="card-text">Gere um relatório com todos os eventos cadastrados no sistema.</p>
-                                <div class="btn-container">
-                                    <a th:href="@{/relatorios/eventos}" class="btn btn-primary" target="_blank">
-                                        <i class="fas fa-file-pdf me-2"></i> Gerar Relatório
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100 relatorio-card">
+                    <div class="card-body text-center p-4">
+                        <img th:src="@{/images/icon-evento.png}" alt="" style="height: 64px; margin-bottom: 16px; opacity: 0.8;">
+                        <h5 class="card-title" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
+                        <p class="card-text text-muted">Visão geral e detalhamento de todos os eventos cadastrados no sistema.</p>
+                        <a th:href="@{/relatorios/eventos}" class="btn btn-primary px-4" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i> Gerar PDF
+                        </a>
                     </div>
+                </div>
+            </div>
 
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 relatorio-card">
-                            <div class="card-body">
-                                <h5 class="card-title">Relatório de Cadastros</h5>
-                                <p class="card-text">Gere um relatório com todos os cadastros do sistema (Clientes, Serviços e Locais).</p>
-                                <div class="btn-container">
-                                    <a th:href="@{/relatorios/entidades}" class="btn btn-primary" target="_blank">
-                                        <i class="fas fa-file-pdf me-2"></i> Gerar Relatório
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+            <div class="col-md-6">
+                <div class="card h-100 relatorio-card">
+                    <div class="card-body text-center p-4">
+                        <img th:src="@{/images/icon-receita.png}" alt="" style="height: 64px; margin-bottom: 16px; opacity: 0.8;">
+                        <h5 class="card-title" style="color: var(--uni-navy); font-weight: 700;">Relatório de Cadastros</h5>
+                        <p class="card-text text-muted">Listagem completa de Clientes, Serviços e Locais cadastrados.</p>
+                        <a th:href="@{/relatorios/entidades}" class="btn btn-primary px-4" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i> Gerar PDF
+                        </a>
                     </div>
                 </div>
             </div>
@@ -52,9 +55,7 @@
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -5,6 +5,17 @@
 <header th:replace="~{fragments/header :: header}"></header>
 <nav th:replace="~{fragments/menu :: menu}"></nav>
 <main>
+    <svg class="bg-decoration" viewBox="0 0 1000 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="grad1" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#6366F1" stop-opacity="0.10"/>
+                <stop offset="40%" stop-color="#6366F1" stop-opacity="0.05"/>
+                <stop offset="100%" stop-color="#E85D04" stop-opacity="0.04"/>
+            </linearGradient>
+        </defs>
+        <path d="M1000 0 L1000 200 Q800 350 500 380 Q200 410 0 520 L0 600 L1000 600 Z" fill="url(#grad1)"/>
+        <path d="M1000 200 Q800 350 500 380 Q200 410 0 520" fill="none" stroke="#6366F1" stroke-opacity="0.12" stroke-width="1.5"/>
+    </svg>
     <div class="calendar-container">
         <div class="calendar-header">
             <button id="prev-month">◀ Mês Anterior</button>

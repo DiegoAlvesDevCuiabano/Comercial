@@ -142,7 +142,7 @@ public class RelatorioGenerator {
         logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         try {
             Image logo = Image.getInstance("src/main/resources/static/images/logo-unisenai.png");
-            logo.scaleToFit(110, 30);
+            logo.scaleToFit(140, 36);
             logoCell.addElement(logo);
         } catch (Exception e) {
             logger.warn("Logo não encontrada, usando texto: {}", e.getMessage());
