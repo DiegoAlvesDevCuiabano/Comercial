@@ -8,27 +8,21 @@
 <nav th:replace="~{fragments/menu :: menu}"></nav>
 
 <main class="py-4">
-    <svg class="bg-decoration" viewBox="0 0 1000 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="grad1" x1="1" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#6366F1" stop-opacity="0.10"/>
-                <stop offset="40%" stop-color="#6366F1" stop-opacity="0.05"/>
-                <stop offset="100%" stop-color="#E85D04" stop-opacity="0.04"/>
-            </linearGradient>
-        </defs>
-        <path d="M1000 0 L1000 200 Q800 350 500 380 Q200 410 0 520 L0 600 L1000 600 Z" fill="url(#grad1)"/>
-        <path d="M1000 200 Q800 350 500 380 Q200 410 0 520" fill="none" stroke="#6366F1" stroke-opacity="0.12" stroke-width="1.5"/>
-    </svg>
-
     <div class="clientes-container animate__animated animate__fadeIn">
-        <h2 class="mb-4">Relatórios</h2>
+        <div class="clientes-header">
+            <h2 class="clientes-title">Relatórios</h2>
+        </div>
 
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="card h-100 relatorio-card">
-                    <div class="card-body text-center p-4">
-                        <img th:src="@{/images/icon-evento.png}" alt="" style="height: 64px; margin-bottom: 16px; opacity: 0.8;">
-                        <h5 class="card-title" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 42px; height: 42px; background: rgba(99,102,241,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px;">
+                                <i class="fas fa-calendar-alt" style="color: var(--uni-indigo); font-size: 1.2rem;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
+                        </div>
                         <p class="card-text text-muted">Visão geral e detalhamento de todos os eventos cadastrados no sistema.</p>
                         <a th:href="@{/relatorios/eventos}" class="btn btn-primary px-4" target="_blank">
                             <i class="fas fa-file-pdf me-2"></i> Gerar PDF
@@ -39,9 +33,13 @@
 
             <div class="col-md-6">
                 <div class="card h-100 relatorio-card">
-                    <div class="card-body text-center p-4">
-                        <img th:src="@{/images/icon-receita.png}" alt="" style="height: 64px; margin-bottom: 16px; opacity: 0.8;">
-                        <h5 class="card-title" style="color: var(--uni-navy); font-weight: 700;">Relatório de Cadastros</h5>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 42px; height: 42px; background: rgba(99,102,241,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 14px;">
+                                <i class="fas fa-users" style="color: var(--uni-indigo); font-size: 1.2rem;"></i>
+                            </div>
+                            <h5 class="card-title mb-0" style="color: var(--uni-navy); font-weight: 700;">Relatório de Cadastros</h5>
+                        </div>
                         <p class="card-text text-muted">Listagem completa de Clientes, Serviços e Locais cadastrados.</p>
                         <a th:href="@{/relatorios/entidades}" class="btn btn-primary px-4" target="_blank">
                             <i class="fas fa-file-pdf me-2"></i> Gerar PDF
