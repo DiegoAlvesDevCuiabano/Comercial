@@ -55,6 +55,10 @@ public class Evento {
     @Column(name = "desconto_percentual", precision = 5, scale = 2)
     private BigDecimal descontoPercentual;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private StatusEvento status = StatusEvento.PLANEJAMENTO;
+
     @Column(columnDefinition = "TEXT")
     private String observacoes;
 

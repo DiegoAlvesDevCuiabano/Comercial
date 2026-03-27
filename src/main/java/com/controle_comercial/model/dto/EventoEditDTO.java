@@ -1,6 +1,7 @@
 package com.controle_comercial.model.dto;
 
 import com.controle_comercial.model.entity.Evento;
+import com.controle_comercial.model.entity.StatusEvento;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,6 +22,7 @@ public class EventoEditDTO {
     private BigDecimal valorTotal;
     private BigDecimal descontoValor;
     private BigDecimal descontoPercentual;
+    private StatusEvento status;
     private String observacoes;
     private ClienteResumoDTO cliente;
     private LocalResumoDTO local;
@@ -37,6 +39,7 @@ public class EventoEditDTO {
         dto.setValorTotal(evento.getValorTotal());
         dto.setDescontoValor(evento.getDescontoValor());
         dto.setDescontoPercentual(evento.getDescontoPercentual());
+        dto.setStatus(evento.getStatus());
         dto.setObservacoes(evento.getObservacoes());
 
         if (evento.getCliente() != null) {
