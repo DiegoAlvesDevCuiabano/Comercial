@@ -26,15 +26,18 @@ public class RelatorioGenerator {
     private static final BaseColor BORDER_LIGHT = new BaseColor(226, 232, 240);
 
     // === FONTES ===
-    private static final Font TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, NAVY);
-    private static final Font SUBTITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, BaseColor.WHITE);
-    private static final Font HEADER_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE);
+    private static final Font TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, NAVY);
+    private static final Font TITLE_LIGHT = FontFactory.getFont(FontFactory.HELVETICA, 22, new BaseColor(100, 116, 139));
+    private static final Font SUBTITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.WHITE);
+    private static final Font HEADER_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, BaseColor.WHITE);
     private static final Font NORMAL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 10, NAVY);
     private static final Font BOLD_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, NAVY);
-    private static final Font LABEL_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, new BaseColor(100, 116, 139));
+    private static final Font LABEL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 9, new BaseColor(100, 116, 139));
     private static final Font TOTAL_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, NAVY);
-    private static final Font VALOR_DESTAQUE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, ORANGE);
+    private static final Font VALOR_DESTAQUE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, ORANGE);
+    private static final Font EVENTO_TITLE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, INDIGO);
     private static final Font FOOTER_FONT = FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(148, 163, 184));
+    private static final Font BADGE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, BaseColor.WHITE);
 
     // =====================================================================
     // RELATÓRIO DE EVENTOS
@@ -121,31 +124,55 @@ public class RelatorioGenerator {
     // =====================================================================
 
     private static void adicionarCabecalhoDocumento(Document document, String titulo) throws DocumentException {
-        // Barra navy com título
-        PdfPTable headerBar = new PdfPTable(1);
+        // Barra navy com badge laranja
+        PdfPTable headerBar = new PdfPTable(2);
         headerBar.setWidthPercentage(100);
-        headerBar.setSpacingAfter(8);
+        headerBar.setWidths(new float[]{4, 1});
+        headerBar.setSpacingAfter(4);
 
-        PdfPCell barCell = new PdfPCell(new Phrase("UniSENAI - Sistema de Controle Comercial", SUBTITLE_FONT));
-        barCell.setBackgroundColor(NAVY);
-        barCell.setPadding(12);
-        barCell.setBorder(Rectangle.NO_BORDER);
-        barCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-        headerBar.addCell(barCell);
+        PdfPCell brandCell = new PdfPCell();
+        brandCell.setBackgroundColor(NAVY);
+        brandCell.setPadding(14);
+        brandCell.setBorder(Rectangle.NO_BORDER);
+        Paragraph brandP = new Paragraph();
+        brandP.add(new Chunk("UniSENAI", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.WHITE)));
+        brandP.add(new Chunk("  Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(180, 190, 210))));
+        brandCell.addElement(brandP);
+        headerBar.addCell(brandCell);
+
+        PdfPCell badgeCell = new PdfPCell(new Phrase("RELATÓRIO", BADGE_FONT));
+        badgeCell.setBackgroundColor(ORANGE);
+        badgeCell.setPadding(14);
+        badgeCell.setBorder(Rectangle.NO_BORDER);
+        badgeCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        badgeCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        headerBar.addCell(badgeCell);
         document.add(headerBar);
 
-        // Linha laranja decorativa
-        LineSeparator orangeLine = new LineSeparator();
-        orangeLine.setLineColor(ORANGE);
-        orangeLine.setLineWidth(3f);
-        document.add(new Chunk(orangeLine));
-        document.add(Chunk.NEWLINE);
+        // Linha indigo fina
+        PdfPTable lineTable = new PdfPTable(1);
+        lineTable.setWidthPercentage(100);
+        lineTable.setSpacingAfter(16);
+        PdfPCell lineCell = new PdfPCell();
+        lineCell.setFixedHeight(3);
+        lineCell.setBackgroundColor(INDIGO);
+        lineCell.setBorder(Rectangle.NO_BORDER);
+        lineTable.addCell(lineCell);
+        document.add(lineTable);
 
-        // Título do relatório
-        Paragraph titleParagraph = new Paragraph(titulo, TITLE_FONT);
-        titleParagraph.setSpacingBefore(10);
-        titleParagraph.setSpacingAfter(18);
+        // Título do relatório com estilo refinado
+        Paragraph titleParagraph = new Paragraph();
+        titleParagraph.add(new Chunk(titulo, TITLE_FONT));
+        titleParagraph.setSpacingBefore(6);
+        titleParagraph.setSpacingAfter(6);
         document.add(titleParagraph);
+
+        // Linha sutil abaixo do título
+        LineSeparator subtleLine = new LineSeparator();
+        subtleLine.setLineColor(BORDER_LIGHT);
+        subtleLine.setLineWidth(1f);
+        document.add(new Chunk(subtleLine));
+        document.add(Chunk.NEWLINE);
     }
 
     private static void adicionarRodapeTexto(Document document) throws DocumentException {
@@ -161,18 +188,26 @@ public class RelatorioGenerator {
     }
 
     private static void adicionarTituloSecao(Document document, String titulo) throws DocumentException {
-        PdfPTable sectionTable = new PdfPTable(1);
+        PdfPTable sectionTable = new PdfPTable(new float[]{4f, 96f});
         sectionTable.setWidthPercentage(100);
-        sectionTable.setSpacingBefore(20);
+        sectionTable.setSpacingBefore(22);
         sectionTable.setSpacingAfter(10);
 
-        PdfPCell cell = new PdfPCell(new Phrase(titulo, SUBTITLE_FONT));
-        cell.setBackgroundColor(INDIGO);
-        cell.setBorder(Rectangle.NO_BORDER);
-        cell.setPadding(10);
-        cell.setBorderWidthLeft(4);
-        cell.setBorderColorLeft(ORANGE);
-        sectionTable.addCell(cell);
+        // Barra lateral laranja
+        PdfPCell accentCell = new PdfPCell();
+        accentCell.setBackgroundColor(ORANGE);
+        accentCell.setBorder(Rectangle.NO_BORDER);
+        accentCell.setFixedHeight(32);
+        sectionTable.addCell(accentCell);
+
+        // Texto da seção
+        PdfPCell textCell = new PdfPCell(new Phrase(titulo, SUBTITLE_FONT));
+        textCell.setBackgroundColor(NAVY);
+        textCell.setBorder(Rectangle.NO_BORDER);
+        textCell.setPadding(9);
+        textCell.setPaddingLeft(12);
+        textCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        sectionTable.addCell(textCell);
 
         document.add(sectionTable);
     }
@@ -211,14 +246,16 @@ public class RelatorioGenerator {
         // Card de título do evento
         PdfPTable titleCard = new PdfPTable(1);
         titleCard.setWidthPercentage(100);
-        titleCard.setSpacingAfter(15);
+        titleCard.setSpacingAfter(18);
 
-        PdfPCell titleCell = new PdfPCell(new Phrase(evento.getTitulo(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, INDIGO)));
-        titleCell.setBorder(Rectangle.BOTTOM);
-        titleCell.setBorderColorBottom(ORANGE);
-        titleCell.setBorderWidthBottom(3);
-        titleCell.setPadding(12);
+        PdfPCell titleCell = new PdfPCell();
+        titleCell.setBorder(Rectangle.NO_BORDER);
+        titleCell.setBorderWidthLeft(5);
+        titleCell.setBorderColorLeft(ORANGE);
+        titleCell.setPadding(16);
         titleCell.setBackgroundColor(BG_LIGHT);
+        Paragraph eventTitle = new Paragraph(evento.getTitulo(), EVENTO_TITLE);
+        titleCell.addElement(eventTitle);
         titleCard.addCell(titleCell);
         document.add(titleCard);
 

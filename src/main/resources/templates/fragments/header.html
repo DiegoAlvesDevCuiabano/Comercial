@@ -9,9 +9,22 @@
 </head>
 
 <header th:fragment="header" class="header">
-  <div>Bem-vindo, <span th:text="${userDetails.name}">Usuário</span>!</div>
+  <div class="header-brand">
+    <span class="header-logo">📊</span>
+    <div>
+      <div class="header-title">Sistema Comercial</div>
+      <div class="header-welcome">Bem-vindo, <span th:text="${userDetails.name}">Usuário</span></div>
+    </div>
+  </div>
+  <div class="header-decorations">
+    <span class="header-icon">📋</span>
+    <span class="header-icon">💼</span>
+    <span class="header-icon">📈</span>
+  </div>
   <form th:action="@{/logout}" method="post">
-    <button type="submit" class="btn btn-danger">Sair</button>
+    <button type="submit" class="btn btn-outline-light btn-sm">
+      <i class="fas fa-sign-out-alt me-1"></i>Sair
+    </button>
   </form>
 </header>
 </html>
