@@ -20,8 +20,19 @@
             </button>
         </div>
 
-        <div class="search-box">
-            <input type="text" class="form-control" placeholder="Pesquisar..." id="searchInput">
+        <div class="d-flex gap-3 mb-3">
+            <div class="flex-grow-1">
+                <input type="text" class="form-control" placeholder="Pesquisar..." id="searchInput">
+            </div>
+            <div>
+                <select id="filtroStatus" class="form-select">
+                    <option value="">Todos os Status</option>
+                    <option th:each="s : ${T(com.controle_comercial.model.entity.StatusEvento).values()}"
+                            th:value="${s.descricao}"
+                            th:text="${s.descricao}">
+                    </option>
+                </select>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -365,6 +376,16 @@
             valorTotalInputHidden.value = totalComDesconto.toFixed(2);
         }
 
+
+        document.getElementById('filtroStatus').addEventListener('change', function() {
+            const filtro = this.value;
+            document.querySelectorAll('table tbody tr').forEach(function(linha) {
+                const badge = linha.querySelector('.badge');
+                if (!badge) return;
+                const status = badge.textContent.trim();
+                linha.style.display = (filtro === '' || status === filtro) ? '' : 'none';
+            });
+        });
 
         document.getElementById('eventoModal').addEventListener('hidden.bs.modal', () => {
             document.body.classList.remove('modal-open');
