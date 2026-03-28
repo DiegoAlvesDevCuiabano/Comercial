@@ -385,6 +385,220 @@ public class RelatorioGenerator {
     }
 
     // =====================================================================
+    // RELATÓRIO DE PÚBLICO ESTIMADO
+    // =====================================================================
+
+    public static ByteArrayInputStream gerarRelatorioPublico(List<Evento> eventos) throws DocumentException {
+        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        PdfWriter.getInstance(document, out);
+        document.open();
+
+        adicionarCabecalhoDocumento(document, "Relatório de Público Estimado");
+
+        PdfPTable table = criarTabela(5, new float[]{3, 2, 2, 2, 2});
+        adicionarCabecalhoTabela(table, "Evento", "Data", "Local", "Capacidade", "Público Est.");
+
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        int totalPublico = 0;
+
+        for (Evento e : eventos) {
+            int publico = e.getEstimativaPublico() != null ? e.getEstimativaPublico()
+                    : (e.getLocal().getCapacidade() != null ? e.getLocal().getCapacidade() : 0);
+            totalPublico += publico;
+
+            adicionarLinhaTabela(table,
+                    e.getTitulo(),
+                    formatarPeriodo(e, dateFmt),
+                    e.getLocal().getNome(),
+                    e.getLocal().getCapacidade() != null ? e.getLocal().getCapacidade().toString() : "-",
+                    String.valueOf(publico));
+        }
+
+        aplicarZebra(table);
+        document.add(table);
+
+        // Total
+        Paragraph totalP = new Paragraph();
+        totalP.add(new Chunk("Total de público estimado: ", BOLD_FONT));
+        totalP.add(new Chunk(String.valueOf(totalPublico) + " pessoas", VALOR_DESTAQUE));
+        totalP.setSpacingBefore(10);
+        document.add(totalP);
+
+        adicionarRodapeTexto(document);
+        document.close();
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    // =====================================================================
+    // RELATÓRIO DE HORAS CONTRATADAS
+    // =====================================================================
+
+    public static ByteArrayInputStream gerarRelatorioHoras(List<Evento> eventos) throws DocumentException {
+        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        PdfWriter.getInstance(document, out);
+        document.open();
+
+        adicionarCabecalhoDocumento(document, "Relatório de Horas Contratadas");
+
+        PdfPTable table = criarTabela(5, new float[]{3, 2, 2, 1.5f, 1.5f});
+        adicionarCabecalhoTabela(table, "Evento", "Data", "Horário", "Dias", "Horas Total");
+
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+        double totalHoras = 0;
+
+        for (Evento e : eventos) {
+            long dias = java.time.temporal.ChronoUnit.DAYS.between(e.getDataInicio(), e.getDataFim()) + 1;
+            double horasPorDia = java.time.Duration.between(e.getHoraInicio(), e.getHoraFim()).toMinutes() / 60.0;
+            double horasEvento = dias * horasPorDia;
+            totalHoras += horasEvento;
+
+            adicionarLinhaTabela(table,
+                    e.getTitulo(),
+                    formatarPeriodo(e, dateFmt),
+                    e.getHoraInicio().format(timeFmt) + " - " + e.getHoraFim().format(timeFmt),
+                    String.valueOf(dias),
+                    String.format("%.1fh", horasEvento));
+        }
+
+        aplicarZebra(table);
+        document.add(table);
+
+        Paragraph totalP = new Paragraph();
+        totalP.add(new Chunk("Total de horas contratadas: ", BOLD_FONT));
+        totalP.add(new Chunk(String.format("%.1f horas", totalHoras), VALOR_DESTAQUE));
+        totalP.setSpacingBefore(10);
+        document.add(totalP);
+
+        adicionarRodapeTexto(document);
+        document.close();
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    // =====================================================================
+    // PDF DE ORÇAMENTO
+    // =====================================================================
+
+    public static ByteArrayInputStream gerarPdfOrcamento(Orcamento orcamento) throws DocumentException {
+        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        PdfWriter.getInstance(document, out);
+        document.open();
+
+        adicionarCabecalhoDocumento(document, "Proposta Comercial");
+
+        // Número e validade
+        PdfPTable infoBar = new PdfPTable(2);
+        infoBar.setWidthPercentage(100);
+        infoBar.setWidths(new float[]{1, 1});
+        infoBar.setSpacingAfter(15);
+
+        PdfPCell numCell = new PdfPCell();
+        numCell.setBorder(Rectangle.NO_BORDER);
+        numCell.setBackgroundColor(BG_LIGHT);
+        numCell.setPadding(12);
+        Paragraph numP = new Paragraph();
+        numP.add(new Chunk("Orçamento: ", LABEL_FONT));
+        numP.add(new Chunk(orcamento.getNumeroOrcamento(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, INDIGO)));
+        numCell.addElement(numP);
+        infoBar.addCell(numCell);
+
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        PdfPCell valCell = new PdfPCell();
+        valCell.setBorder(Rectangle.NO_BORDER);
+        valCell.setBackgroundColor(BG_LIGHT);
+        valCell.setPadding(12);
+        valCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        Paragraph valP = new Paragraph();
+        valP.add(new Chunk("Validade: ", LABEL_FONT));
+        valP.add(new Chunk(orcamento.getDataValidade() != null ? orcamento.getDataValidade().format(dateFmt) : "Não definida", BOLD_FONT));
+        valP.setAlignment(Element.ALIGN_RIGHT);
+        valCell.addElement(valP);
+        infoBar.addCell(valCell);
+        document.add(infoBar);
+
+        // Cliente
+        adicionarTituloSecao(document, "Cliente");
+        PdfPTable clienteTable = criarTabelaDetalhes();
+        adicionarLinhaDetalhe(clienteTable, "Nome", orcamento.getCliente().getNome());
+        adicionarLinhaDetalhe(clienteTable, "Telefone", valorOuTraco(orcamento.getCliente().getTelefone()));
+        adicionarLinhaDetalhe(clienteTable, "Email", valorOuTraco(orcamento.getCliente().getEmail()));
+        document.add(clienteTable);
+
+        // Evento proposto
+        adicionarTituloSecao(document, "Evento Proposto");
+        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+        PdfPTable eventoTable = criarTabelaDetalhes();
+        adicionarLinhaDetalhe(eventoTable, "Data", orcamento.getDataInicioEvento().format(dateFmt) +
+                (orcamento.getDataFimEvento().equals(orcamento.getDataInicioEvento()) ? "" : " a " + orcamento.getDataFimEvento().format(dateFmt)));
+        adicionarLinhaDetalhe(eventoTable, "Horário", orcamento.getHoraInicio().format(timeFmt) + " - " + orcamento.getHoraFim().format(timeFmt));
+        adicionarLinhaDetalhe(eventoTable, "Local", orcamento.getLocal().getNome());
+        document.add(eventoTable);
+
+        // Serviços
+        adicionarTituloSecao(document, "Serviços");
+        if (orcamento.getServicos() != null && !orcamento.getServicos().isEmpty()) {
+            PdfPTable servicosTable = criarTabela(4, new float[]{3, 1.5f, 2, 2});
+            adicionarCabecalhoTabela(servicosTable, "Serviço", "Qtd", "Valor Unit.", "Subtotal");
+
+            BigDecimal totalServicos = BigDecimal.ZERO;
+            for (OrcamentoServico os : orcamento.getServicos()) {
+                BigDecimal subtotal = os.getServico().getPrecoUnitario().multiply(new BigDecimal(os.getQuantidade()));
+                totalServicos = totalServicos.add(subtotal);
+                adicionarLinhaTabela(servicosTable,
+                        os.getServico().getNome(),
+                        os.getQuantidade().toString(),
+                        formatarMoeda(os.getServico().getPrecoUnitario()),
+                        formatarMoeda(subtotal));
+            }
+            aplicarZebra(servicosTable);
+            document.add(servicosTable);
+        }
+
+        // Valores
+        adicionarTituloSecao(document, "Valores");
+        PdfPTable valoresTable = criarTabelaDetalhes();
+        if (orcamento.getDescontoValor() != null && orcamento.getDescontoValor().compareTo(BigDecimal.ZERO) > 0) {
+            adicionarLinhaDetalhe(valoresTable, "Desconto", formatarMoeda(orcamento.getDescontoValor()));
+        }
+        document.add(valoresTable);
+
+        // Valor total em destaque
+        PdfPTable totalTable = new PdfPTable(1);
+        totalTable.setWidthPercentage(100);
+        totalTable.setSpacingBefore(8);
+        PdfPCell totalCell = new PdfPCell();
+        totalCell.setBorder(Rectangle.NO_BORDER);
+        totalCell.setBackgroundColor(BG_LIGHT);
+        totalCell.setPadding(16);
+        Paragraph totalP = new Paragraph();
+        totalP.add(new Chunk("VALOR TOTAL: ", TOTAL_FONT));
+        totalP.add(new Chunk(formatarMoeda(orcamento.getValorTotal()), VALOR_DESTAQUE));
+        totalP.setAlignment(Element.ALIGN_RIGHT);
+        totalCell.addElement(totalP);
+        totalTable.addCell(totalCell);
+        document.add(totalTable);
+
+        // Observações
+        if (orcamento.getObservacoes() != null && !orcamento.getObservacoes().isBlank()) {
+            document.add(Chunk.NEWLINE);
+            Paragraph obsP = new Paragraph();
+            obsP.add(new Chunk("Observações: ", BOLD_FONT));
+            obsP.add(new Chunk(orcamento.getObservacoes(), NORMAL_FONT));
+            document.add(obsP);
+        }
+
+        adicionarRodapeTexto(document);
+        document.close();
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    // =====================================================================
     // HELPERS
     // =====================================================================
 

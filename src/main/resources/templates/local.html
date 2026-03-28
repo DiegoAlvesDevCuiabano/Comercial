@@ -51,7 +51,9 @@
                     </td>
                 </tr>
                 <tr th:if="${locais.size() == 0}">
-                    <td colspan="4" class="text-center py-4">Nenhum Local Encontrado</td>
+                    <td colspan="4" class="text-center py-4">
+                        <div class="alert alert-info mb-0 d-inline-block"><i class="fas fa-info-circle me-2"></i>Nenhum local cadastrado. Clique em "Novo Local" para começar.</div>
+                    </td>
                 </tr>
                 </tbody>
             </table>
