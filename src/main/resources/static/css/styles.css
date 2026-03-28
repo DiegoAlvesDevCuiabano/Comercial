@@ -741,3 +741,92 @@ footer::before {
         justify-content: center;
     }
 }
+
+/* === TOAST === */
+.toast {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(26, 35, 50, 0.15);
+}
+
+/* === SPINNER BUTTON === */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* === FORM VALIDATION === */
+.was-validated .form-control:valid,
+.was-validated .form-select:valid {
+    border-color: var(--uni-indigo);
+}
+
+.was-validated .form-control:invalid,
+.was-validated .form-select:invalid {
+    border-color: #dc3545;
+}
+
+/* === TABLE RESPONSIVE MOBILE === */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .clientes-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .clientes-title {
+        font-size: 1.25rem;
+    }
+
+    .header-brand {
+        gap: 8px;
+    }
+
+    .header-logo-text {
+        font-size: 1rem;
+    }
+
+    .header-title {
+        font-size: 0.85rem;
+    }
+}
+
+/* === TOOLTIP CUSTOM === */
+.tooltip-inner {
+    background: var(--uni-navy);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+.tooltip .tooltip-arrow::before {
+    border-top-color: var(--uni-navy);
+}

@@ -3,4 +3,63 @@
 <footer th:fragment="footer">
   © 2026 UniSENAI - Sistema de Controle Comercial
 </footer>
+
+<!-- Toast de feedback global -->
+<div th:fragment="toasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+  <div id="successToast" class="toast" role="alert" data-bs-delay="3000">
+    <div class="toast-header" style="background: var(--uni-indigo); color: white;">
+      <strong class="me-auto"><i class="fas fa-check-circle me-1"></i> Sucesso</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body" id="successToastBody">Operação realizada com sucesso!</div>
+  </div>
+
+  <div id="errorToast" class="toast" role="alert" data-bs-delay="5000">
+    <div class="toast-header bg-danger text-white">
+      <strong class="me-auto"><i class="fas fa-exclamation-circle me-1"></i> Erro</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body" id="errorToastBody">Ocorreu um erro.</div>
+  </div>
+</div>
+
+<script th:fragment="toastScript">
+function showToast(type, message) {
+    const toastEl = document.getElementById(type + 'Toast');
+    if (!toastEl) return;
+    document.getElementById(type + 'ToastBody').textContent = message;
+    new bootstrap.Toast(toastEl).show();
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-show toast from flash attributes
+    const successMsg = document.querySelector('[data-flash-success]');
+    const errorMsg = document.querySelector('[data-flash-error]');
+    if (successMsg) showToast('success', successMsg.dataset.flashSuccess);
+    if (errorMsg) showToast('error', errorMsg.dataset.flashError);
+
+    // Init tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+        new bootstrap.Tooltip(el);
+    });
+
+    // Spinner on PDF buttons
+    document.querySelectorAll('[data-loading]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            this.classList.add('btn-loading');
+            setTimeout(() => this.classList.remove('btn-loading'), 3000);
+        });
+    });
+
+    // Bootstrap form validation
+    document.querySelectorAll('form.needs-validation').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+});
+</script>
 </html>
