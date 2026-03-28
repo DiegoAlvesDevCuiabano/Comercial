@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
@@ -46,14 +47,17 @@ public class EventoController {
     public String salvar(@ModelAttribute Evento evento,
                          @RequestParam("cliente.id") Integer clienteId,
                          @RequestParam("local.id") Integer localId,
-                         @RequestParam Map<String, String> allParams) {
+                         @RequestParam Map<String, String> allParams,
+                         RedirectAttributes redirectAttributes) {
         eventoService.salvarEventoComServicos(evento, clienteId, localId, allParams);
+        redirectAttributes.addFlashAttribute("success", "Evento salvo com sucesso!");
         return "redirect:/eventos";
     }
 
     @PostMapping("/excluir/{id}")
-    public String excluir(@PathVariable Integer id) {
+    public String excluir(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         eventoService.deletar(id);
+        redirectAttributes.addFlashAttribute("success", "Evento excluído com sucesso!");
         return "redirect:/eventos";
     }
 

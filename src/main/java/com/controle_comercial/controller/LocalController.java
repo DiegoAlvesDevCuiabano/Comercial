@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,14 +32,16 @@ public class LocalController {
     }
 
     @PostMapping("/salvar")
-    public String salvar(@ModelAttribute Local local) {
+    public String salvar(@ModelAttribute Local local, RedirectAttributes redirectAttributes) {
         service.salvar(local);
+        redirectAttributes.addFlashAttribute("success", "Local salvo com sucesso!");
         return "redirect:/local";
     }
 
     @PostMapping("/excluir/{id}")
-    public String excluir(@PathVariable Integer id) {
+    public String excluir(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         service.deletar(id);
+        redirectAttributes.addFlashAttribute("success", "Local excluído com sucesso!");
         return "redirect:/local";
     }
 

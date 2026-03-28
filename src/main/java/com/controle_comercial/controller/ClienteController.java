@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
@@ -41,14 +42,16 @@ public class ClienteController {
     }
 
     @PostMapping("/salvar")
-    public String salvarCliente(@ModelAttribute Cliente cliente) {
+    public String salvarCliente(@ModelAttribute Cliente cliente, RedirectAttributes redirectAttributes) {
         service.salvar(cliente);
+        redirectAttributes.addFlashAttribute("success", "Cliente salvo com sucesso!");
         return "redirect:/clientes";
     }
 
     @PostMapping("/excluir/{id}")
-    public String excluirCliente(@PathVariable Integer id) {
+    public String excluirCliente(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         service.deletar(id);
+        redirectAttributes.addFlashAttribute("success", "Cliente excluído com sucesso!");
         return "redirect:/clientes";
     }
 
