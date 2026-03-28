@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
@@ -28,14 +29,16 @@ public class ServicoController {
     }
 
     @PostMapping("/salvar")
-    public String salvar(@ModelAttribute Servico servico) {
+    public String salvar(@ModelAttribute Servico servico, RedirectAttributes redirectAttributes) {
         service.salvar(servico);
+        redirectAttributes.addFlashAttribute("success", "Serviço salvo com sucesso!");
         return "redirect:/servicos";
     }
 
     @PostMapping("/excluir/{id}")
-    public String excluir(@PathVariable Integer id) {
+    public String excluir(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         service.deletar(id);
+        redirectAttributes.addFlashAttribute("success", "Serviço excluído com sucesso!");
         return "redirect:/servicos";
     }
 

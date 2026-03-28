@@ -422,6 +422,13 @@
         }
 
 
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const value = this.value.toLowerCase();
+            document.querySelectorAll('table tbody tr').forEach(function(row) {
+                row.style.display = row.textContent.toLowerCase().includes(value) ? '' : 'none';
+            });
+        });
+
         document.getElementById('filtroStatus').addEventListener('change', function() {
             const filtro = this.value;
             document.querySelectorAll('table tbody tr').forEach(function(linha) {

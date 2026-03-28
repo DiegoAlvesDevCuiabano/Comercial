@@ -128,8 +128,13 @@ header, nav, footer {
     background-color: #FFF7ED;
 }
 
-.menu a:hover::after {
+.menu a:hover::after,
+.menu a.active::after {
     width: 60%;
+}
+
+.menu a.active {
+    color: var(--uni-orange);
 }
 
 /* === MAIN === */
