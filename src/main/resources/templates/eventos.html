@@ -140,6 +140,25 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <label class="form-label mb-0">Locais Adicionais</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="btnLocaisExtras" onclick="toggleLocaisExtras()">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                        <div id="locaisExtrasContainer" style="display: none;">
+                            <textarea class="form-control" id="locaisAdicionais" name="locaisAdicionais" rows="2"
+                                      placeholder="Ex: Sala 101, Auditório 2..."></textarea>
+                            <small class="text-muted">Informe outros locais separados por vírgula</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="estimativaPublico" class="form-label">Público Estimado</label>
+                        <input type="number" class="form-control" id="estimativaPublico" name="estimativaPublico" min="0" placeholder="Número de pessoas">
+                    </div>
+
                     <div class="mb-3 servicos-section p-3 rounded">
                         <h6 class="servicos-title mb-3">Serviços</h6>
                         <div class="d-flex mb-2">
@@ -274,6 +293,23 @@
             form.reset();
             servicosSelecionados = [];
             atualizarTabela();
+            document.getElementById('locaisExtrasContainer').style.display = 'none';
+            document.getElementById('locaisAdicionais').value = '';
+        };
+
+        window.toggleLocaisExtras = function () {
+            const container = document.getElementById('locaisExtrasContainer');
+            const btn = document.getElementById('btnLocaisExtras');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-minus"></i> Ocultar';
+                btn.classList.replace('btn-outline-secondary', 'btn-outline-danger');
+            } else {
+                container.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-plus"></i> Adicionar';
+                btn.classList.replace('btn-outline-danger', 'btn-outline-secondary');
+                document.getElementById('locaisAdicionais').value = '';
+            }
         };
 
         window.carregarEventoParaEdicao = function (id) {
@@ -294,6 +330,11 @@
                     if (evento.status) document.getElementById('status').value = evento.status;
                     if (evento.cliente) document.getElementById('cliente').value = evento.cliente.idCliente;
                     if (evento.local) document.getElementById('local').value = evento.local.idLocal;
+                    if (evento.estimativaPublico) document.getElementById('estimativaPublico').value = evento.estimativaPublico;
+                    if (evento.locaisAdicionais && evento.locaisAdicionais.trim() !== '') {
+                        document.getElementById('locaisAdicionais').value = evento.locaisAdicionais;
+                        document.getElementById('locaisExtrasContainer').style.display = 'block';
+                    }
 
                     if (evento.servicos && evento.servicos.length > 0) {
                         const servicosFormatados = evento.servicos.map(item => ({

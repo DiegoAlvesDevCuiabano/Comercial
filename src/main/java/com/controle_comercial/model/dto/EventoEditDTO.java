@@ -23,6 +23,8 @@ public class EventoEditDTO {
     private BigDecimal descontoValor;
     private BigDecimal descontoPercentual;
     private StatusEvento status;
+    private String locaisAdicionais;
+    private Integer estimativaPublico;
     private String observacoes;
     private ClienteResumoDTO cliente;
     private LocalResumoDTO local;
@@ -40,6 +42,8 @@ public class EventoEditDTO {
         dto.setDescontoValor(evento.getDescontoValor());
         dto.setDescontoPercentual(evento.getDescontoPercentual());
         dto.setStatus(evento.getStatus());
+        dto.setLocaisAdicionais(evento.getLocaisAdicionais());
+        dto.setEstimativaPublico(evento.getEstimativaPublico());
         dto.setObservacoes(evento.getObservacoes());
 
         if (evento.getCliente() != null) {
