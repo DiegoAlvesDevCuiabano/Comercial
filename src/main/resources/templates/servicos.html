@@ -63,7 +63,7 @@
 <div class="modal fade" id="servicoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content animate__animated animate__fadeInDown">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header">
                 <h5 class="modal-title" id="modalTitle">Novo Serviço</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -95,9 +95,12 @@
     </div>
 </div>
 
+<div th:if="${success}" th:attr="data-flash-success=${success}" style="display:none;"></div>
+<div th:if="${error}" th:attr="data-flash-error=${error}" style="display:none;"></div>
+<div th:replace="~{fragments/footer :: toasts}"></div>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<th:block th:replace="~{fragments/footer :: toastScript}"></th:block>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
