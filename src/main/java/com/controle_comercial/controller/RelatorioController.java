@@ -4,14 +4,18 @@ import com.controle_comercial.model.entity.*;
 import com.controle_comercial.service.*;
 import com.controle_comercial.util.RelatorioGenerator;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.ByteArrayInputStream;
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -34,8 +38,21 @@ public class RelatorioController {
     }
 
     @GetMapping("/eventos")
-    public ResponseEntity<InputStreamResource> gerarRelatorioEventos() {
-        List<Evento> eventos = eventoService.listarTodos();
+    public ResponseEntity<InputStreamResource> gerarRelatorioEventos(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+            @RequestParam(required = false) Integer clienteId,
+            @RequestParam(required = false) Integer localId,
+            @RequestParam(required = false) StatusEvento status) {
+
+        List<Evento> eventos;
+        boolean temFiltro = dataInicio != null || dataFim != null || clienteId != null || localId != null || status != null;
+
+        if (temFiltro) {
+            eventos = eventoService.listarComFiltros(dataInicio, dataFim, clienteId, localId, status);
+        } else {
+            eventos = eventoService.listarTodos();
+        }
 
         try {
             ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioEventos(eventos);
@@ -76,7 +93,10 @@ public class RelatorioController {
     }
 
     @GetMapping
-    public String relatorios() {
+    public String relatorios(Model model) {
+        model.addAttribute("clientes", clienteService.listarTodos());
+        model.addAttribute("locais", localService.listarTodos());
+        model.addAttribute("statusList", StatusEvento.values());
         return "relatorios";
     }
 

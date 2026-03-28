@@ -9,6 +9,7 @@ import com.controle_comercial.model.entity.Cliente;
 import com.controle_comercial.model.entity.Evento;
 import com.controle_comercial.model.entity.Local;
 import com.controle_comercial.model.entity.Servico;
+import com.controle_comercial.model.entity.StatusEvento;
 import com.controle_comercial.repository.EventoRepository;
 import com.controle_comercial.repository.EventoServicoRepository;
 import org.slf4j.Logger;
@@ -53,6 +54,13 @@ public class EventoService {
     @Transactional(readOnly = true)
     public List<Evento> listarTodos() {
         return repository.findAllByOrderByDataInicioAsc();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Evento> listarComFiltros(LocalDate dataInicio, LocalDate dataFim,
+                                         Integer clienteId, Integer localId,
+                                         StatusEvento status) {
+        return repository.findByFiltros(dataInicio, dataFim, clienteId, localId, status);
     }
 
     @Transactional
