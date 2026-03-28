@@ -53,7 +53,9 @@
           </td>
         </tr>
         <tr th:if="${clientes.size() == 0}">
-          <td colspan="5" class="text-center py-4">Nenhum Cliente Encontrado</td>
+          <td colspan="5" class="text-center py-4">
+            <div class="alert alert-info mb-0 d-inline-block"><i class="fas fa-info-circle me-2"></i>Nenhum cliente cadastrado. Clique em "Novo Cliente" para começar.</div>
+          </td>
         </tr>
         </tbody>
       </table>

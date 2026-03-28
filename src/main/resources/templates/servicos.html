@@ -51,7 +51,9 @@
                     </td>
                 </tr>
                 <tr th:if="${servicos.size() == 0}">
-                    <td colspan="4" class="text-center py-4">Nenhum Serviço Encontrado</td>
+                    <td colspan="4" class="text-center py-4">
+                        <div class="alert alert-info mb-0 d-inline-block"><i class="fas fa-info-circle me-2"></i>Nenhum serviço cadastrado. Clique em "Novo Serviço" para começar.</div>
+                    </td>
                 </tr>
                 </tbody>
             </table>

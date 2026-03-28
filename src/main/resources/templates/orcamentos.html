@@ -47,6 +47,10 @@
                     <td class="text-center">
                         <!-- Ações variam por status -->
                         <div class="d-flex gap-1 justify-content-center">
+                            <a th:href="@{'/orcamentos/pdf/' + ${orc.idOrcamento}}" target="_blank"
+                               class="btn btn-sm btn-outline-secondary" title="Gerar PDF">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
                             <form th:if="${orc.status.name() == 'RASCUNHO'}" th:action="@{'/orcamentos/status/' + ${orc.idOrcamento}}" method="post" style="display:inline;">
                                 <input type="hidden" name="status" value="ENVIADO">
                                 <button type="submit" class="btn btn-sm btn-outline-info" title="Marcar como Enviado">
@@ -81,7 +85,9 @@
                     </td>
                 </tr>
                 <tr th:if="${orcamentos.size() == 0}">
-                    <td colspan="6" class="text-center py-4">Nenhum orçamento encontrado</td>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="alert alert-info mb-0 d-inline-block"><i class="fas fa-info-circle me-2"></i>Nenhum orçamento encontrado. Clique em "Novo Orçamento" para começar.</div>
+                    </td>
                 </tr>
                 </tbody>
             </table>

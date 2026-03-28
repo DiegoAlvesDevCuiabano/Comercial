@@ -6,12 +6,17 @@ import com.controle_comercial.service.ClienteService;
 import com.controle_comercial.service.LocalService;
 import com.controle_comercial.service.OrcamentoService;
 import com.controle_comercial.service.ServicoService;
+import com.controle_comercial.util.RelatorioGenerator;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 @Controller
@@ -88,5 +93,20 @@ public class OrcamentoController {
         return orcamentoService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/pdf/{id}")
+    public ResponseEntity<InputStreamResource> gerarPdf(@PathVariable Integer id) {
+        Orcamento orcamento = orcamentoService.buscarPorId(id)
+                .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
+
+        try {
+            ByteArrayInputStream bis = RelatorioGenerator.gerarPdfOrcamento(orcamento);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=" + orcamento.getNumeroOrcamento() + ".pdf");
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar PDF do orçamento", e);
+        }
     }
 }

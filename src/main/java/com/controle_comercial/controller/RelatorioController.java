@@ -92,6 +92,44 @@ public class RelatorioController {
         }
     }
 
+    @GetMapping("/publico")
+    public ResponseEntity<InputStreamResource> gerarRelatorioPublico(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+
+        List<Evento> eventos = (dataInicio != null || dataFim != null)
+                ? eventoService.listarComFiltros(dataInicio, dataFim, null, null, null)
+                : eventoService.listarTodos();
+
+        try {
+            ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioPublico(eventos);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=relatorio_publico.pdf");
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar relatório de público", e);
+        }
+    }
+
+    @GetMapping("/horas")
+    public ResponseEntity<InputStreamResource> gerarRelatorioHoras(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+
+        List<Evento> eventos = (dataInicio != null || dataFim != null)
+                ? eventoService.listarComFiltros(dataInicio, dataFim, null, null, null)
+                : eventoService.listarTodos();
+
+        try {
+            ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioHoras(eventos);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "inline; filename=relatorio_horas.pdf");
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar relatório de horas", e);
+        }
+    }
+
     @GetMapping
     public String relatorios(Model model) {
         model.addAttribute("clientes", clienteService.listarTodos());
