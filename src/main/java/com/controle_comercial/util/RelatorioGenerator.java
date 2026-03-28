@@ -307,7 +307,7 @@ public class RelatorioGenerator {
 
         // Seções
         adicionarSecaoCliente(document, evento.getCliente());
-        adicionarSecaoLocal(document, evento.getLocal());
+        adicionarSecaoLocal(document, evento.getLocal(), evento.getLocaisAdicionais());
         adicionarSecaoServicos(document, evento.getServicos());
     }
 
@@ -321,12 +321,15 @@ public class RelatorioGenerator {
         document.add(table);
     }
 
-    private static void adicionarSecaoLocal(Document document, Local local) throws DocumentException {
+    private static void adicionarSecaoLocal(Document document, Local local, String locaisAdicionais) throws DocumentException {
         adicionarTituloSecao(document, "Local do Evento");
         PdfPTable table = criarTabelaDetalhes();
         adicionarLinhaDetalhe(table, "Nome", local.getNome());
         adicionarLinhaDetalhe(table, "Tipo", local.getTipo().toString());
         adicionarLinhaDetalhe(table, "Capacidade", local.getCapacidade() != null ? local.getCapacidade().toString() : "-");
+        if (locaisAdicionais != null && !locaisAdicionais.isBlank()) {
+            adicionarLinhaDetalhe(table, "Locais Extras", locaisAdicionais);
+        }
         document.add(table);
     }
 

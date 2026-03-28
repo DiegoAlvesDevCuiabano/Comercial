@@ -59,6 +59,12 @@ public class Evento {
     @Column(nullable = false, length = 20)
     private StatusEvento status = StatusEvento.PLANEJAMENTO;
 
+    @Column(name = "locais_adicionais", columnDefinition = "TEXT")
+    private String locaisAdicionais;
+
+    @Column(name = "estimativa_publico")
+    private Integer estimativaPublico;
+
     @Column(columnDefinition = "TEXT")
     private String observacoes;
 
