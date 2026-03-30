@@ -3,6 +3,7 @@ package com.controle_comercial.controller;
 import com.controle_comercial.model.entity.Orcamento;
 import com.controle_comercial.model.entity.StatusOrcamento;
 import com.controle_comercial.service.ClienteService;
+import com.controle_comercial.service.EmailService;
 import com.controle_comercial.service.LocalService;
 import com.controle_comercial.service.OrcamentoService;
 import com.controle_comercial.service.ServicoService;
@@ -27,15 +28,18 @@ public class OrcamentoController {
     private final ClienteService clienteService;
     private final LocalService localService;
     private final ServicoService servicoService;
+    private final EmailService emailService;
 
     public OrcamentoController(OrcamentoService orcamentoService,
                                ClienteService clienteService,
                                LocalService localService,
-                               ServicoService servicoService) {
+                               ServicoService servicoService,
+                               EmailService emailService) {
         this.orcamentoService = orcamentoService;
         this.clienteService = clienteService;
         this.localService = localService;
         this.servicoService = servicoService;
+        this.emailService = emailService;
     }
 
     @GetMapping
@@ -87,6 +91,14 @@ public class OrcamentoController {
         return "redirect:/eventos";
     }
 
+    @GetMapping("/novo")
+    public String novoOrcamento(Model model) {
+        model.addAttribute("clientes", clienteService.listarTodos());
+        model.addAttribute("locais", localService.listarTodos());
+        model.addAttribute("servicos", servicoService.listarTodos());
+        return "orcamento-novo";
+    }
+
     @GetMapping("/buscar/{id}")
     @ResponseBody
     public ResponseEntity<?> buscarPorId(@PathVariable Integer id) {
@@ -95,15 +107,44 @@ public class OrcamentoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/enviar-email/{id}")
+    public String enviarEmail(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            Orcamento orcamento = orcamentoService.buscarPorId(id)
+                    .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
+            emailService.enviarOrcamentoPorEmail(orcamento);
+
+            // Marcar como ENVIADO automaticamente se estava em RASCUNHO
+            if (orcamento.getStatus() == StatusOrcamento.RASCUNHO) {
+                orcamentoService.atualizarStatus(id, StatusOrcamento.ENVIADO);
+            }
+
+            redirectAttributes.addFlashAttribute("success", "Email enviado para " + orcamento.getCliente().getEmail());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erro ao enviar email: " + e.getMessage());
+        }
+        return "redirect:/orcamentos";
+    }
+
     @GetMapping("/pdf/{id}")
+    public String viewPdf(@PathVariable Integer id, Model model) {
+        Orcamento orcamento = orcamentoService.buscarPorId(id)
+                .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
+        model.addAttribute("pdfTitle", "Proposta " + orcamento.getNumeroOrcamento() + " | UniSENAI");
+        model.addAttribute("pdfUrl", "/comercial/orcamentos/pdf/raw/" + id);
+        return "pdf-viewer";
+    }
+
+    @GetMapping(value = "/pdf/raw/{id}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<InputStreamResource> gerarPdf(@PathVariable Integer id) {
         Orcamento orcamento = orcamentoService.buscarPorId(id)
                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
 
         try {
             ByteArrayInputStream bis = RelatorioGenerator.gerarPdfOrcamento(orcamento);
+            String filename = "UniSENAI_Proposta_" + orcamento.getNumeroOrcamento() + ".pdf";
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "inline; filename=" + orcamento.getNumeroOrcamento() + ".pdf");
+            headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename(filename).build());
             return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF do orçamento", e);
