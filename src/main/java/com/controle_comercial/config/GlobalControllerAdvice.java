@@ -1,6 +1,7 @@
 package com.controle_comercial.config;
 
 import com.controle_comercial.model.dto.UserDetailsDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +12,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @Component
 @ControllerAdvice
 public class GlobalControllerAdvice {
+
+    @ModelAttribute("currentUri")
+    public String addCurrentUri(HttpServletRequest request) {
+        return request.getRequestURI();
+    }
 
     @ModelAttribute("userDetails")
     public UserDetailsDTO addUserDetailsToModel() {

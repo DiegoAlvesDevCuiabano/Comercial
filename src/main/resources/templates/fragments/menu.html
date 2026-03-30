@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <nav th:fragment="menu" class="menu">
-  <a th:href="@{/home}" th:classappend="${#strings.contains(#request.requestURI, '/home')} ? 'active' : ''">Início</a>
-  <a th:href="@{/eventos}" th:classappend="${#strings.contains(#request.requestURI, '/eventos')} ? 'active' : ''">Eventos</a>
-  <a th:href="@{/clientes}" th:classappend="${#strings.contains(#request.requestURI, '/clientes')} ? 'active' : ''">Clientes</a>
-  <a th:href="@{/local}" th:classappend="${#strings.contains(#request.requestURI, '/local')} ? 'active' : ''">Local</a>
-  <a th:href="@{/servicos}" th:classappend="${#strings.contains(#request.requestURI, '/servicos')} ? 'active' : ''">Serviço</a>
-  <a th:href="@{/orcamentos}" th:classappend="${#strings.contains(#request.requestURI, '/orcamentos')} ? 'active' : ''">Orçamentos</a>
-  <a th:href="@{/relatorios}" th:classappend="${#strings.contains(#request.requestURI, '/relatorios')} ? 'active' : ''">Relatórios</a>
+  <a th:href="@{/home}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/home')} ? 'active' : ''">Início</a>
+  <a th:href="@{/eventos}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/eventos')} ? 'active' : ''">Eventos</a>
+  <a th:href="@{/clientes}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/clientes')} ? 'active' : ''">Clientes</a>
+  <a th:href="@{/local}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/local')} ? 'active' : ''">Local</a>
+  <a th:href="@{/servicos}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/servicos')} ? 'active' : ''">Serviço</a>
+  <a th:href="@{/orcamentos}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/orcamentos')} ? 'active' : ''">Orçamentos</a>
+  <a th:href="@{/relatorios}" th:classappend="${currentUri != null && #strings.contains(currentUri, '/relatorios')} ? 'active' : ''">Relatórios</a>
 </nav>
 </html>
