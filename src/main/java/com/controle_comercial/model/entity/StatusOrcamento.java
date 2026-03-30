@@ -5,7 +5,8 @@ public enum StatusOrcamento {
     ENVIADO("Enviado", "info"),
     APROVADO("Aprovado", "success"),
     REJEITADO("Rejeitado", "danger"),
-    EXPIRADO("Expirado", "warning");
+    EXPIRADO("Expirado", "warning"),
+    CONVERTIDO("Convertido em Evento", "dark");
 
     private final String descricao;
     private final String bootstrapClass;

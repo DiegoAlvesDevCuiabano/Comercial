@@ -46,7 +46,7 @@ public class SecurityConfig {
                 )
                 .csrf(Customizer.withDefaults())
                 .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
                         .contentTypeOptions(Customizer.withDefaults())
                 );
 

@@ -543,8 +543,8 @@ footer::before {
 
 /* === EVENT LIST (Calendar Modal) === */
 .event-list {
-    max-height: 300px;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
 }
 
 .event-item {
@@ -660,11 +660,17 @@ footer::before {
 }
 
 /* === FORM STYLES === */
-.form-control,
-.form-select {
+.form-control {
     border-radius: 10px;
     border: 2px solid #E2E8F0;
     padding: 0.6rem 0.9rem;
+    transition: var(--uni-transition);
+}
+
+.form-select {
+    border-radius: 10px;
+    border: 2px solid #E2E8F0;
+    padding: 0.6rem 2.5rem 0.6rem 0.9rem;
     transition: var(--uni-transition);
 }
 

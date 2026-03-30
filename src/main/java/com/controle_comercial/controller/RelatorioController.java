@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +39,45 @@ public class RelatorioController {
         this.localService = localService;
     }
 
+    // === VIEWERS (HTML wrapper com título correto) ===
+
     @GetMapping("/eventos")
+    public String viewEventos(HttpServletRequest request, Model model) {
+        String query = request.getQueryString();
+        String rawUrl = "/comercial/relatorios/eventos/raw" + (query != null && !query.isBlank() ? "?" + query : "");
+        model.addAttribute("pdfTitle", "Relatório de Eventos | UniSENAI");
+        model.addAttribute("pdfUrl", rawUrl);
+        return "pdf-viewer";
+    }
+
+    @GetMapping("/entidades")
+    public String viewEntidades(Model model) {
+        model.addAttribute("pdfTitle", "Relatório de Cadastros | UniSENAI");
+        model.addAttribute("pdfUrl", "/comercial/relatorios/entidades/raw");
+        return "pdf-viewer";
+    }
+
+    @GetMapping("/publico")
+    public String viewPublico(HttpServletRequest request, Model model) {
+        String query = request.getQueryString();
+        String rawUrl = "/comercial/relatorios/publico/raw" + (query != null && !query.isBlank() ? "?" + query : "");
+        model.addAttribute("pdfTitle", "Público Estimado | UniSENAI");
+        model.addAttribute("pdfUrl", rawUrl);
+        return "pdf-viewer";
+    }
+
+    @GetMapping("/horas")
+    public String viewHoras(HttpServletRequest request, Model model) {
+        String query = request.getQueryString();
+        String rawUrl = "/comercial/relatorios/horas/raw" + (query != null && !query.isBlank() ? "?" + query : "");
+        model.addAttribute("pdfTitle", "Horas Contratadas | UniSENAI");
+        model.addAttribute("pdfUrl", rawUrl);
+        return "pdf-viewer";
+    }
+
+    // === RAW PDF ENDPOINTS ===
+
+    @GetMapping(value = "/eventos/raw", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<InputStreamResource> gerarRelatorioEventos(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
@@ -45,32 +85,21 @@ public class RelatorioController {
             @RequestParam(required = false) Integer localId,
             @RequestParam(required = false) StatusEvento status) {
 
-        List<Evento> eventos;
-        boolean temFiltro = dataInicio != null || dataFim != null || clienteId != null || localId != null || status != null;
-
-        if (temFiltro) {
-            eventos = eventoService.listarComFiltros(dataInicio, dataFim, clienteId, localId, status);
-        } else {
-            eventos = eventoService.listarTodos();
-        }
+        List<Evento> eventos = (dataInicio != null || dataFim != null || clienteId != null || localId != null || status != null)
+                ? eventoService.listarComFiltros(dataInicio, dataFim, clienteId, localId, status)
+                : eventoService.listarTodos();
 
         try {
             ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioEventos(eventos);
-
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "inline; filename=relatorio_eventos.pdf");
-
-            return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(new InputStreamResource(bis));
+            headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename("UniSENAI_Relatorio_Eventos.pdf").build());
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar relatório de eventos", e);
         }
     }
 
-    @GetMapping("/entidades")
+    @GetMapping(value = "/entidades/raw", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<InputStreamResource> gerarRelatorioEntidades() {
         List<Cliente> clientes = clienteService.listarTodos();
         List<Servico> servicos = servicoService.listarTodos();
@@ -78,21 +107,15 @@ public class RelatorioController {
 
         try {
             ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioCompleto(clientes, servicos, locais);
-
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "inline; filename=relatorio_entidades.pdf");
-
-            return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .body(new InputStreamResource(bis));
+            headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename("UniSENAI_Relatorio_Cadastros.pdf").build());
+            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar relatório de entidades", e);
         }
     }
 
-    @GetMapping("/publico")
+    @GetMapping(value = "/publico/raw", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<InputStreamResource> gerarRelatorioPublico(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
@@ -104,14 +127,14 @@ public class RelatorioController {
         try {
             ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioPublico(eventos);
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "inline; filename=relatorio_publico.pdf");
+            headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename("UniSENAI_Publico_Estimado.pdf").build());
             return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar relatório de público", e);
         }
     }
 
-    @GetMapping("/horas")
+    @GetMapping(value = "/horas/raw", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<InputStreamResource> gerarRelatorioHoras(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
@@ -123,7 +146,7 @@ public class RelatorioController {
         try {
             ByteArrayInputStream bis = RelatorioGenerator.gerarRelatorioHoras(eventos);
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "inline; filename=relatorio_horas.pdf");
+            headers.setContentDisposition(org.springframework.http.ContentDisposition.inline().filename("UniSENAI_Horas_Contratadas.pdf").build());
             return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(new InputStreamResource(bis));
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar relatório de horas", e);

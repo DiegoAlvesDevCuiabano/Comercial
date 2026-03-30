@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}">
+    <title>Novo Orçamento - Sistema Comercial</title>
+</head>
+<body>
+<header th:replace="~{fragments/header :: header}"></header>
+<nav th:replace="~{fragments/menu :: menu}"></nav>
+
+<main class="py-4">
+    <div class="clientes-container animate__animated animate__fadeIn" style="max-width: 800px;">
+
+        <div class="d-flex align-items-center mb-4">
+            <a th:href="@{/orcamentos}" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h2 class="clientes-title mb-0">Novo Orçamento</h2>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="d-flex justify-content-between mb-4">
+            <div class="wizard-step active" data-step="1"><span>1</span> Dados</div>
+            <div class="wizard-step" data-step="2"><span>2</span> Local</div>
+            <div class="wizard-step" data-step="3"><span>3</span> Serviços</div>
+            <div class="wizard-step" data-step="4"><span>4</span> Revisão</div>
+        </div>
+
+        <form th:action="@{/orcamentos/salvar}" method="post" id="orcamentoForm">
+            <input type="hidden" name="idOrcamento" id="orcamentoId">
+
+            <!-- Step 1: Cliente e Datas -->
+            <div class="wizard-pane active" id="step1">
+                <div class="card border-0 p-4" style="background: var(--uni-bg); border-radius: 12px;">
+                    <h5 style="color: var(--uni-navy); font-weight: 700;" class="mb-3">
+                        <i class="fas fa-user me-2" style="color: var(--uni-indigo);"></i>Dados do Cliente e Datas
+                    </h5>
+                    <div class="mb-3">
+                        <label class="form-label">Cliente *</label>
+                        <select class="form-select" id="clienteOrc" name="cliente.id" required>
+                            <option value="">Selecione...</option>
+                            <option th:each="c : ${clientes}" th:value="${c.idCliente}" th:text="${c.nome}"></option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Data Início *</label>
+                            <input type="date" class="form-control" id="dataInicioEvento" name="dataInicioEvento" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Data Fim *</label>
+                            <input type="date" class="form-control" id="dataFimEvento" name="dataFimEvento" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hora Início *</label>
+                            <input type="time" class="form-control" id="horaInicioOrc" name="horaInicio" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Hora Fim *</label>
+                            <input type="time" class="form-control" id="horaFimOrc" name="horaFim" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Local -->
+            <div class="wizard-pane" id="step2">
+                <div class="card border-0 p-4" style="background: var(--uni-bg); border-radius: 12px;">
+                    <h5 style="color: var(--uni-navy); font-weight: 700;" class="mb-3">
+                        <i class="fas fa-map-marker-alt me-2" style="color: var(--uni-indigo);"></i>Local e Detalhes
+                    </h5>
+                    <div class="mb-3">
+                        <label class="form-label">Local *</label>
+                        <select class="form-select" id="localOrc" name="local.id" required>
+                            <option value="">Selecione...</option>
+                            <option th:each="l : ${locais}" th:value="${l.idLocal}" th:text="${l.nome + ' (' + l.tipo + ' - Cap. ' + (l.capacidade != null ? l.capacidade : '?') + ')'}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Validade do Orçamento</label>
+                        <input type="date" class="form-control" id="dataValidade" name="dataValidade">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoesOrc" name="observacoes" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Serviços -->
+            <div class="wizard-pane" id="step3">
+                <div class="card border-0 p-4" style="background: var(--uni-bg); border-radius: 12px;">
+                    <h5 style="color: var(--uni-navy); font-weight: 700;" class="mb-3">
+                        <i class="fas fa-concierge-bell me-2" style="color: var(--uni-indigo);"></i>Serviços
+                    </h5>
+                    <div class="d-flex mb-3">
+                        <select class="form-select" id="servicoSelectOrc">
+                            <option value="">Selecione um serviço...</option>
+                            <option th:each="s : ${servicos}" th:value="${s.idServico}"
+                                    th:data-preco="${s.precoUnitario}"
+                                    th:text="${s.nome + ' (R$ ' + #numbers.formatDecimal(s.precoUnitario,1,'POINT',2,'COMMA') + ')'}"></option>
+                        </select>
+                        <button type="button" class="btn btn-secondary ms-2" id="addServicoOrcBtn">Adicionar</button>
+                    </div>
+                    <table id="servicosOrcTable" class="table table-sm">
+                        <thead><tr><th>Serviço</th><th>Qtd</th><th>Preço</th><th>Total</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Step 4: Revisão -->
+            <div class="wizard-pane" id="step4">
+                <div class="card border-0 p-4" style="background: var(--uni-bg); border-radius: 12px;">
+                    <h5 style="color: var(--uni-navy); font-weight: 700;" class="mb-3">
+                        <i class="fas fa-clipboard-check me-2" style="color: var(--uni-indigo);"></i>Revisão Final
+                    </h5>
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label class="form-label">Valor Total</label>
+                            <input type="text" class="form-control" id="valorTotalOrcBR" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Desconto (R$)</label>
+                            <input type="number" step="0.01" class="form-control" id="descontoValorOrc" name="descontoValor" value="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">% Desconto</label>
+                            <input type="text" class="form-control" id="descontoPercOrc" readonly>
+                        </div>
+                    </div>
+                    <div id="resumoOrcamento" class="p-3 rounded mb-3" style="background: white; border: 2px solid #E2E8F0; border-radius: 10px;"></div>
+                    <input type="hidden" id="valorTotalOrc" name="valorTotal">
+                    <input type="hidden" id="servicosSelecionadosOrcHidden" name="servicosSelecionados">
+                </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" id="btnPrev" style="display:none;" onclick="wizardPrev()">
+                    <i class="fas fa-arrow-left me-1"></i> Anterior
+                </button>
+                <div class="ms-auto d-flex gap-2">
+                    <a th:href="@{/orcamentos}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="button" class="btn btn-primary" id="btnNext" onclick="wizardNext()">
+                        Próximo <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                    <button type="submit" class="btn btn-success" id="btnSalvar" style="display:none;">
+                        <i class="fas fa-save me-1"></i> Salvar Orçamento
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<th:block th:replace="~{fragments/footer :: toastScript}"></th:block>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+.wizard-step { text-align: center; flex: 1; padding: 10px; font-size: 0.85rem; color: #94A3B8; font-weight: 600; border-bottom: 3px solid #E2E8F0; transition: all 0.2s; }
+.wizard-step.active { color: var(--uni-indigo); border-bottom-color: var(--uni-indigo); }
+.wizard-step.done { color: var(--uni-orange); border-bottom-color: var(--uni-orange); }
+.wizard-step span { display: inline-block; width: 28px; height: 28px; line-height: 28px; border-radius: 50%; background: #E2E8F0; color: #64748B; font-size: 0.8rem; margin-right: 6px; }
+.wizard-step.active span { background: var(--uni-indigo); color: white; }
+.wizard-step.done span { background: var(--uni-orange); color: white; }
+.wizard-pane { display: none; }
+.wizard-pane.active { display: block; }
+</style>
+
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+let servicosOrc = [];
+
+function wizardNext() {
+    if (currentStep < totalSteps) { currentStep++; updateWizard(); }
+}
+function wizardPrev() {
+    if (currentStep > 1) { currentStep--; updateWizard(); }
+}
+function updateWizard() {
+    document.querySelectorAll('.wizard-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('step' + currentStep).classList.add('active');
+    document.querySelectorAll('.wizard-step').forEach(s => {
+        const step = parseInt(s.dataset.step);
+        s.classList.remove('active', 'done');
+        if (step === currentStep) s.classList.add('active');
+        else if (step < currentStep) s.classList.add('done');
+    });
+    document.getElementById('btnPrev').style.display = currentStep > 1 ? '' : 'none';
+    document.getElementById('btnNext').style.display = currentStep < totalSteps ? '' : 'none';
+    document.getElementById('btnSalvar').style.display = currentStep === totalSteps ? '' : 'none';
+    if (currentStep === 4) atualizarResumo();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tbody = document.querySelector('#servicosOrcTable tbody');
+    document.getElementById('addServicoOrcBtn').addEventListener('click', () => {
+        const select = document.getElementById('servicoSelectOrc');
+        const opt = select.options[select.selectedIndex];
+        if (!opt.value) return;
+        if (servicosOrc.some(s => s.id == opt.value)) { alert('Serviço já adicionado!'); return; }
+        servicosOrc.push({ id: opt.value, nome: opt.text, preco: parseFloat(opt.dataset.preco), quantidade: 1 });
+        atualizarTabelaOrc();
+    });
+    tbody.addEventListener('input', e => {
+        if (e.target.classList.contains('qtdOrc')) {
+            servicosOrc[parseInt(e.target.dataset.index)].quantidade = parseInt(e.target.value) || 1;
+            atualizarTabelaOrc();
+        }
+    });
+    tbody.addEventListener('click', e => {
+        if (e.target.classList.contains('rmOrc')) {
+            servicosOrc.splice(parseInt(e.target.dataset.index), 1);
+            atualizarTabelaOrc();
+        }
+    });
+    document.getElementById('descontoValorOrc').addEventListener('input', atualizarTabelaOrc);
+    document.getElementById('orcamentoForm').addEventListener('submit', e => {
+        document.getElementById('servicosSelecionadosOrcHidden').value =
+            servicosOrc.map(s => s.id + ':' + s.quantidade).join(',');
+    });
+});
+
+function atualizarTabelaOrc() {
+    const tbody = document.querySelector('#servicosOrcTable tbody');
+    tbody.innerHTML = '';
+    let total = 0;
+    servicosOrc.forEach((s, i) => {
+        const t = s.preco * s.quantidade;
+        total += t;
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${s.nome}</td><td><input type="number" min="1" value="${s.quantidade}" class="form-control form-control-sm qtdOrc" data-index="${i}" style="width:70px"></td><td>R$ ${s.preco.toFixed(2)}</td><td>R$ ${t.toFixed(2)}</td><td><button type="button" class="btn btn-sm btn-danger rmOrc" data-index="${i}">×</button></td>`;
+        tbody.appendChild(row);
+    });
+    const desconto = parseFloat(document.getElementById('descontoValorOrc').value) || 0;
+    const perc = total > 0 ? (desconto / total) * 100 : 0;
+    const totalFinal = Math.max(total - desconto, 0);
+    document.getElementById('valorTotalOrcBR').value = 'R$ ' + totalFinal.toFixed(2);
+    document.getElementById('valorTotalOrc').value = totalFinal.toFixed(2);
+    document.getElementById('descontoPercOrc').value = perc.toFixed(2) + ' %';
+}
+
+function atualizarResumo() {
+    atualizarTabelaOrc();
+    const cliente = document.getElementById('clienteOrc');
+    const local = document.getElementById('localOrc');
+    const resumo = document.getElementById('resumoOrcamento');
+    let html = '<h6 style="color: var(--uni-navy); font-weight: 700;">Resumo do Orçamento</h6>';
+    html += '<p><strong>Cliente:</strong> ' + (cliente.options[cliente.selectedIndex]?.text || '-') + '</p>';
+    html += '<p><strong>Local:</strong> ' + (local.options[local.selectedIndex]?.text || '-') + '</p>';
+    html += '<p><strong>Data:</strong> ' + (document.getElementById('dataInicioEvento').value || '-') + ' a ' + (document.getElementById('dataFimEvento').value || '-') + '</p>';
+    html += '<p><strong>Serviços:</strong> ' + servicosOrc.length + ' selecionado(s)</p>';
+    html += '<p><strong>Valor Total:</strong> ' + document.getElementById('valorTotalOrcBR').value + '</p>';
+    resumo.innerHTML = html;
+}
+</script>
+</body>
+</html>

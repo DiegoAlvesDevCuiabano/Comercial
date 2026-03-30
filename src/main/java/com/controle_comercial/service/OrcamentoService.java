@@ -179,7 +179,13 @@ public class OrcamentoService {
             eventoSalvo.adicionarServico(os.getServico(), os.getQuantidade());
         }
 
-        return eventoService.salvar(eventoSalvo);
+        Evento resultado = eventoService.salvar(eventoSalvo);
+
+        // Marcar orçamento como convertido
+        orcamento.setStatus(StatusOrcamento.CONVERTIDO);
+        repository.save(orcamento);
+
+        return resultado;
     }
 
     private String gerarNumeroOrcamento() {

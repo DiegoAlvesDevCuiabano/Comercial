@@ -17,9 +17,9 @@
                     <option th:each="s : ${statusList}" th:value="${s}" th:text="${s.descricao}"
                             th:selected="${statusFiltro != null && statusFiltro == s}"></option>
                 </select>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#orcamentoModal" onclick="limparFormulario()">
+                <a th:href="@{/orcamentos/novo}" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i> Novo Orçamento
-                </button>
+                </a>
             </div>
         </div>
 
@@ -47,16 +47,28 @@
                     <td class="text-center">
                         <!-- Ações variam por status -->
                         <div class="d-flex gap-1 justify-content-center">
+                            <!-- PDF: sempre -->
                             <a th:href="@{'/orcamentos/pdf/' + ${orc.idOrcamento}}" target="_blank"
                                class="btn btn-sm btn-outline-secondary" title="Gerar PDF">
                                 <i class="fas fa-file-pdf"></i>
                             </a>
-                            <form th:if="${orc.status.name() == 'RASCUNHO'}" th:action="@{'/orcamentos/status/' + ${orc.idOrcamento}}" method="post" style="display:inline;">
-                                <input type="hidden" name="status" value="ENVIADO">
-                                <button type="submit" class="btn btn-sm btn-outline-info" title="Marcar como Enviado">
-                                    <i class="fas fa-paper-plane"></i>
+
+                            <!-- RASCUNHO: enviar email + excluir -->
+                            <button th:if="${orc.status.name() == 'RASCUNHO'}"
+                                    type="button" class="btn btn-sm btn-outline-primary btn-email" title="Enviar por Email"
+                                    th:data-id="${orc.idOrcamento}"
+                                    th:data-nome="${orc.cliente.nome}"
+                                    th:data-email="${orc.cliente.email}">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                            <form th:if="${orc.status.name() == 'RASCUNHO'}" th:action="@{'/orcamentos/excluir/' + ${orc.idOrcamento}}" method="post" style="display:inline;">
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Excluir"
+                                        onclick="abrirModalConfirm(this.closest('form'), 'Deseja excluir este orçamento?')">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
+
+                            <!-- ENVIADO: aprovar + rejeitar -->
                             <form th:if="${orc.status.name() == 'ENVIADO'}" th:action="@{'/orcamentos/status/' + ${orc.idOrcamento}}" method="post" style="display:inline;">
                                 <input type="hidden" name="status" value="APROVADO">
                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Aprovar">
@@ -69,18 +81,16 @@
                                     <i class="fas fa-times"></i>
                                 </button>
                             </form>
+
+                            <!-- APROVADO: criar evento -->
                             <form th:if="${orc.status.name() == 'APROVADO'}" th:action="@{'/orcamentos/converter/' + ${orc.idOrcamento}}" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-success" title="Criar Evento"
-                                        onclick="return confirm('Criar evento a partir deste orçamento?')">
+                                <button type="button" class="btn btn-sm btn-success" title="Criar Evento"
+                                        onclick="abrirModalConfirm(this.closest('form'), 'Criar evento a partir deste orçamento?')">
                                     <i class="fas fa-calendar-plus"></i> Criar Evento
                                 </button>
                             </form>
-                            <form th:if="${orc.status.name() == 'RASCUNHO'}" th:action="@{'/orcamentos/excluir/' + ${orc.idOrcamento}}" method="post" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir"
-                                        onclick="return confirm('Deseja excluir este orçamento?')">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
+
+                            <!-- REJEITADO, EXPIRADO, CONVERTIDO: só PDF (nenhum botão extra) -->
                         </div>
                     </td>
                 </tr>
@@ -95,134 +105,6 @@
     </div>
 </main>
 
-<!-- Modal Wizard -->
-<div class="modal fade" id="orcamentoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Novo Orçamento</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/orcamentos/salvar}" method="post" id="orcamentoForm">
-                <div class="modal-body">
-                    <!-- Progress -->
-                    <div class="d-flex justify-content-between mb-4">
-                        <div class="wizard-step active" data-step="1"><span>1</span> Dados</div>
-                        <div class="wizard-step" data-step="2"><span>2</span> Local</div>
-                        <div class="wizard-step" data-step="3"><span>3</span> Serviços</div>
-                        <div class="wizard-step" data-step="4"><span>4</span> Revisão</div>
-                    </div>
-
-                    <input type="hidden" name="idOrcamento" id="orcamentoId">
-
-                    <!-- Step 1: Cliente e Datas -->
-                    <div class="wizard-pane active" id="step1">
-                        <div class="mb-3">
-                            <label class="form-label">Cliente *</label>
-                            <select class="form-select" id="clienteOrc" name="cliente.id" required>
-                                <option value="">Selecione...</option>
-                                <option th:each="c : ${clientes}" th:value="${c.idCliente}" th:text="${c.nome}"></option>
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Data Início *</label>
-                                <input type="date" class="form-control" id="dataInicioEvento" name="dataInicioEvento" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Data Fim *</label>
-                                <input type="date" class="form-control" id="dataFimEvento" name="dataFimEvento" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Hora Início *</label>
-                                <input type="time" class="form-control" id="horaInicioOrc" name="horaInicio" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Hora Fim *</label>
-                                <input type="time" class="form-control" id="horaFimOrc" name="horaFim" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Local -->
-                    <div class="wizard-pane" id="step2">
-                        <div class="mb-3">
-                            <label class="form-label">Local *</label>
-                            <select class="form-select" id="localOrc" name="local.id" required>
-                                <option value="">Selecione...</option>
-                                <option th:each="l : ${locais}" th:value="${l.idLocal}" th:text="${l.nome + ' (' + l.tipo + ' - Cap. ' + (l.capacidade != null ? l.capacidade : '?') + ')'}"></option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Validade do Orçamento</label>
-                            <input type="date" class="form-control" id="dataValidade" name="dataValidade">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Observações</label>
-                            <textarea class="form-control" id="observacoesOrc" name="observacoes" rows="3"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Serviços -->
-                    <div class="wizard-pane" id="step3">
-                        <div class="d-flex mb-3">
-                            <select class="form-select" id="servicoSelectOrc">
-                                <option value="">Selecione um serviço...</option>
-                                <option th:each="s : ${servicos}" th:value="${s.idServico}"
-                                        th:data-preco="${s.precoUnitario}"
-                                        th:text="${s.nome + ' (R$ ' + #numbers.formatDecimal(s.precoUnitario,1,'POINT',2,'COMMA') + ')'}"></option>
-                            </select>
-                            <button type="button" class="btn btn-secondary ms-2" id="addServicoOrcBtn">Adicionar</button>
-                        </div>
-                        <table id="servicosOrcTable" class="table table-sm">
-                            <thead><tr><th>Serviço</th><th>Qtd</th><th>Preço</th><th>Total</th><th></th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-
-                    <!-- Step 4: Revisão -->
-                    <div class="wizard-pane" id="step4">
-                        <div class="mb-3 row">
-                            <div class="col-md-6">
-                                <label class="form-label">Valor Total</label>
-                                <input type="text" class="form-control" id="valorTotalOrcBR" readonly>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Desconto (R$)</label>
-                                <input type="number" step="0.01" class="form-control" id="descontoValorOrc" name="descontoValor" value="0">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">% Desconto</label>
-                                <input type="text" class="form-control" id="descontoPercOrc" readonly>
-                            </div>
-                        </div>
-                        <div id="resumoOrcamento" class="p-3 rounded" style="background: var(--uni-bg);"></div>
-                        <input type="hidden" id="valorTotalOrc" name="valorTotal">
-                        <input type="hidden" id="servicosSelecionadosOrcHidden" name="servicosSelecionados">
-                    </div>
-                </div>
-
-                <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary" id="btnPrev" style="display:none;" onclick="wizardPrev()">
-                        <i class="fas fa-arrow-left me-1"></i> Anterior
-                    </button>
-                    <div class="ms-auto d-flex gap-2">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" id="btnNext" onclick="wizardNext()">
-                            Próximo <i class="fas fa-arrow-right ms-1"></i>
-                        </button>
-                        <button type="submit" class="btn btn-success" id="btnSalvar" style="display:none;">
-                            <i class="fas fa-save me-1"></i> Salvar Orçamento
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <div th:if="${success}" th:attr="data-flash-success=${success}" style="display:none;"></div>
 <div th:if="${error}" th:attr="data-flash-error=${error}" style="display:none;"></div>
 <div th:replace="~{fragments/footer :: toasts}"></div>
@@ -232,138 +114,83 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<style>
-.wizard-step { text-align: center; flex: 1; padding: 8px; font-size: 0.85rem; color: #94A3B8; font-weight: 600; border-bottom: 3px solid #E2E8F0; transition: all 0.2s; }
-.wizard-step.active { color: var(--uni-indigo); border-bottom-color: var(--uni-indigo); }
-.wizard-step.done { color: var(--uni-orange); border-bottom-color: var(--uni-orange); }
-.wizard-step span { display: inline-block; width: 24px; height: 24px; line-height: 24px; border-radius: 50%; background: #E2E8F0; color: #64748B; font-size: 0.75rem; margin-right: 4px; }
-.wizard-step.active span { background: var(--uni-indigo); color: white; }
-.wizard-step.done span { background: var(--uni-orange); color: white; }
-.wizard-pane { display: none; }
-.wizard-pane.active { display: block; }
-</style>
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmação</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Envio de Email -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-envelope me-2"></i>Enviar Orçamento por Email</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="emailForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <div class="modal-body">
+                    <p>Enviar proposta comercial para:</p>
+                    <div class="p-3 rounded" style="background: var(--uni-bg); border-radius: 10px;">
+                        <p class="mb-1"><strong>Cliente:</strong> <span id="emailClienteNome"></span></p>
+                        <p class="mb-0"><strong>Email:</strong> <span id="emailClienteEmail"></span></p>
+                    </div>
+                    <p class="text-muted mt-3 mb-0" style="font-size: 0.85rem;">
+                        <i class="fas fa-paperclip me-1"></i>O PDF do orçamento será anexado automaticamente.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-1"></i>Enviar Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
-let currentStep = 1;
-const totalSteps = 4;
-let servicosOrc = [];
-
-function wizardNext() {
-    if (currentStep < totalSteps) {
-        currentStep++;
-        updateWizard();
-    }
-}
-
-function wizardPrev() {
-    if (currentStep > 1) {
-        currentStep--;
-        updateWizard();
-    }
-}
-
-function updateWizard() {
-    document.querySelectorAll('.wizard-pane').forEach(p => p.classList.remove('active'));
-    document.getElementById('step' + currentStep).classList.add('active');
-
-    document.querySelectorAll('.wizard-step').forEach(s => {
-        const step = parseInt(s.dataset.step);
-        s.classList.remove('active', 'done');
-        if (step === currentStep) s.classList.add('active');
-        else if (step < currentStep) s.classList.add('done');
-    });
-
-    document.getElementById('btnPrev').style.display = currentStep > 1 ? '' : 'none';
-    document.getElementById('btnNext').style.display = currentStep < totalSteps ? '' : 'none';
-    document.getElementById('btnSalvar').style.display = currentStep === totalSteps ? '' : 'none';
-
-    if (currentStep === 4) atualizarResumo();
-}
-
-function limparFormulario() {
-    currentStep = 1;
-    servicosOrc = [];
-    document.getElementById('orcamentoForm').reset();
-    atualizarTabelaOrc();
-    updateWizard();
-}
-
 function filtrarPorStatus(status) {
     const url = status ? '/comercial/orcamentos?status=' + status : '/comercial/orcamentos';
     window.location.href = url;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const tbody = document.querySelector('#servicosOrcTable tbody');
-    const addBtn = document.getElementById('addServicoOrcBtn');
-    const select = document.getElementById('servicoSelectOrc');
+let pendingForm = null;
 
-    addBtn.addEventListener('click', () => {
-        const opt = select.options[select.selectedIndex];
-        if (!opt.value) return;
-        if (servicosOrc.some(s => s.id == opt.value)) { alert('Serviço já adicionado!'); return; }
-        servicosOrc.push({ id: opt.value, nome: opt.text, preco: parseFloat(opt.dataset.preco), quantidade: 1 });
-        atualizarTabelaOrc();
-    });
+function abrirModalConfirm(form, message) {
+    pendingForm = form;
+    document.getElementById('confirmMessage').textContent = message;
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
 
-    tbody.addEventListener('input', e => {
-        if (e.target.classList.contains('qtdOrc')) {
-            servicosOrc[parseInt(e.target.dataset.index)].quantidade = parseInt(e.target.value) || 1;
-            atualizarTabelaOrc();
-        }
-    });
-
-    tbody.addEventListener('click', e => {
-        if (e.target.classList.contains('rmOrc')) {
-            servicosOrc.splice(parseInt(e.target.dataset.index), 1);
-            atualizarTabelaOrc();
-        }
-    });
-
-    document.getElementById('descontoValorOrc').addEventListener('input', atualizarTabelaOrc);
-
-    document.getElementById('orcamentoForm').addEventListener('submit', e => {
-        document.getElementById('servicosSelecionadosOrcHidden').value =
-            servicosOrc.map(s => s.id + ':' + s.quantidade).join(',');
-    });
+document.getElementById('confirmBtn').addEventListener('click', function() {
+    if (pendingForm) pendingForm.submit();
 });
 
-function atualizarTabelaOrc() {
-    const tbody = document.querySelector('#servicosOrcTable tbody');
-    tbody.innerHTML = '';
-    let total = 0;
-
-    servicosOrc.forEach((s, i) => {
-        const t = s.preco * s.quantidade;
-        total += t;
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${s.nome}</td><td><input type="number" min="1" value="${s.quantidade}" class="form-control form-control-sm qtdOrc" data-index="${i}" style="width:70px"></td><td>R$ ${s.preco.toFixed(2)}</td><td>R$ ${t.toFixed(2)}</td><td><button type="button" class="btn btn-sm btn-danger rmOrc" data-index="${i}">×</button></td>`;
-        tbody.appendChild(row);
-    });
-
-    const desconto = parseFloat(document.getElementById('descontoValorOrc').value) || 0;
-    const perc = total > 0 ? (desconto / total) * 100 : 0;
-    const totalFinal = Math.max(total - desconto, 0);
-
-    document.getElementById('valorTotalOrcBR').value = 'R$ ' + totalFinal.toFixed(2);
-    document.getElementById('valorTotalOrc').value = totalFinal.toFixed(2);
-    document.getElementById('descontoPercOrc').value = perc.toFixed(2) + ' %';
-}
-
-function atualizarResumo() {
-    atualizarTabelaOrc();
-    const cliente = document.getElementById('clienteOrc');
-    const local = document.getElementById('localOrc');
-    const resumo = document.getElementById('resumoOrcamento');
-
-    let html = '<h6 style="color: var(--uni-navy); font-weight: 700;">Resumo do Orçamento</h6>';
-    html += '<p><strong>Cliente:</strong> ' + (cliente.options[cliente.selectedIndex]?.text || '-') + '</p>';
-    html += '<p><strong>Local:</strong> ' + (local.options[local.selectedIndex]?.text || '-') + '</p>';
-    html += '<p><strong>Data:</strong> ' + (document.getElementById('dataInicioEvento').value || '-') + ' a ' + (document.getElementById('dataFimEvento').value || '-') + '</p>';
-    html += '<p><strong>Serviços:</strong> ' + servicosOrc.length + ' selecionado(s)</p>';
-    html += '<p><strong>Valor Total:</strong> ' + document.getElementById('valorTotalOrcBR').value + '</p>';
-    resumo.innerHTML = html;
-}
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-email');
+    if (btn) {
+        document.getElementById('emailClienteNome').textContent = btn.dataset.nome;
+        document.getElementById('emailClienteEmail').textContent = btn.dataset.email || 'Não cadastrado';
+        document.getElementById('emailForm').action = '/comercial/orcamentos/enviar-email/' + btn.dataset.id;
+        new bootstrap.Modal(document.getElementById('emailModal')).show();
+    }
+});
 </script>
 
 </body>

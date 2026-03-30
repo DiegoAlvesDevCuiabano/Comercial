@@ -13,147 +13,159 @@
             <h2 class="clientes-title">Relatórios</h2>
         </div>
 
-        <div class="row g-4">
-            <!-- Card Relatório de Eventos com Filtros -->
-            <div class="col-md-7">
-                <div class="card h-100 border-0" style="border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden;">
-                    <div style="height: 4px; background: linear-gradient(90deg, var(--uni-indigo), var(--uni-blue));"></div>
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start mb-3">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05)); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 16px;">
-                                <i class="fas fa-calendar-check" style="color: var(--uni-indigo); font-size: 1.3rem;"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-1" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
-                                <span style="font-size: 0.8rem; color: var(--uni-indigo); font-weight: 600;">PDF com filtros</span>
-                            </div>
-                        </div>
+        <style>
+            .report-card { border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden; border: none; }
+            .report-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; }
+            .report-btn { padding: 10px; background: var(--uni-orange); border: none; color: white; border-radius: 10px; font-weight: 600; width: 100%; display: block; text-align: center; text-decoration: none; transition: var(--uni-transition); }
+            .report-btn:hover { background: var(--uni-orange-hover); color: white; transform: translateY(-1px); }
+            .report-bar { height: 4px; background: linear-gradient(90deg, var(--uni-indigo), var(--uni-blue)); }
+        </style>
 
-                        <form th:action="@{/relatorios/eventos}" method="get" target="_blank">
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Data Início</label>
-                                    <input type="date" name="dataInicio" class="form-control form-control-sm">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Data Fim</label>
-                                    <input type="date" name="dataFim" class="form-control form-control-sm">
-                                </div>
-                            </div>
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Cliente</label>
-                                    <select name="clienteId" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option th:each="c : ${clientes}" th:value="${c.idCliente}" th:text="${c.nome}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Local</label>
-                                    <select name="localId" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option th:each="l : ${locais}" th:value="${l.idLocal}" th:text="${l.nome}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Status</label>
-                                    <select name="status" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option th:each="s : ${statusList}" th:value="${s}" th:text="${s.descricao}"></option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100" style="padding: 10px;" data-loading>
-                                <i class="fas fa-file-pdf me-2"></i> Gerar Relatório de Eventos
-                            </button>
-                        </form>
+        <!-- Eventos: full-width (tem mais filtros) -->
+        <div class="card report-card mb-4">
+            <div class="report-bar"></div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="report-icon" style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05));">
+                        <i class="fas fa-calendar-check" style="color: var(--uni-indigo); font-size: 1.1rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0" style="color: var(--uni-navy); font-weight: 700;">Relatório de Eventos</h5>
+                        <small class="text-muted">Visão geral e detalhamento com filtros por período, cliente, local e status.</small>
                     </div>
                 </div>
+                <form th:action="@{/relatorios/eventos}" method="get" target="_blank">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Data Início</label>
+                            <input type="date" name="dataInicio" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Data Fim</label>
+                            <input type="date" name="dataFim" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cliente</label>
+                            <select name="clienteId" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option th:each="c : ${clientes}" th:value="${c.idCliente}" th:text="${c.nome}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Local</label>
+                            <select name="localId" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option th:each="l : ${locais}" th:value="${l.idLocal}" th:text="${l.nome}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option th:each="s : ${statusList}" th:value="${s}" th:text="${s.descricao}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="report-btn" data-loading style="padding: 7px; font-size: 0.85rem;">
+                                <i class="fas fa-file-pdf"></i> Gerar
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <!-- Card Relatório de Cadastros -->
-            <div class="col-md-5">
-                <div class="card h-100 border-0" style="border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden;">
-                    <div style="height: 4px; background: linear-gradient(90deg, var(--uni-orange), var(--uni-indigo));"></div>
+        <!-- Row de 3 cards iguais -->
+        <div class="row g-4">
+            <!-- Cadastros -->
+            <div class="col-md-4">
+                <div class="card report-card h-100">
+                    <div class="report-bar"></div>
                     <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-start mb-3">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(232,93,4,0.12), rgba(232,93,4,0.04)); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 16px;">
-                                <i class="fas fa-users" style="color: var(--uni-orange); font-size: 1.3rem;"></i>
+                            <div class="report-icon" style="background: linear-gradient(135deg, rgba(232,93,4,0.12), rgba(232,93,4,0.04));">
+                                <i class="fas fa-users" style="color: var(--uni-orange); font-size: 1.1rem;"></i>
                             </div>
                             <div>
-                                <h5 class="mb-1" style="color: var(--uni-navy); font-weight: 700;">Relatório de Cadastros</h5>
-                                <span style="font-size: 0.8rem; color: var(--uni-orange); font-weight: 600;">PDF</span>
+                                <h6 class="mb-0" style="color: var(--uni-navy); font-weight: 700;">Cadastros</h6>
+                                <small class="text-muted">Clientes, Serviços e Locais</small>
                             </div>
                         </div>
-                        <p class="text-muted mb-4" style="font-size: 0.9rem; line-height: 1.6;">
-                            Listagem completa de Clientes, Serviços e Locais cadastrados no sistema, cada um em sua própria página.
-                        </p>
+                        <p class="text-muted mb-3" style="font-size: 0.85rem;">Listagem completa de todos os cadastros do sistema.</p>
                         <div class="mt-auto">
-                            <a th:href="@{/relatorios/entidades}" class="btn w-100" target="_blank" style="padding: 10px; background: var(--uni-orange); border: none; color: white; border-radius: 10px; font-weight: 600;">
-                                <i class="fas fa-file-pdf me-2"></i> Gerar Relatório de Cadastros
+                            <a th:href="@{/relatorios/entidades}" class="report-btn" target="_blank" style="font-size: 0.85rem;">
+                                <i class="fas fa-file-pdf"></i> Gerar Relatório
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Relatórios extras -->
-        <div class="row g-4 mt-2">
-            <div class="col-md-6">
-                <div class="card border-0" style="border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden;">
-                    <div style="height: 4px; background: linear-gradient(90deg, var(--uni-blue), var(--uni-indigo));"></div>
-                    <div class="card-body p-4">
+            <!-- Público Estimado -->
+            <div class="col-md-4">
+                <div class="card report-card h-100">
+                    <div class="report-bar"></div>
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-start mb-3">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05)); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 16px;">
-                                <i class="fas fa-user-friends" style="color: var(--uni-blue); font-size: 1.3rem;"></i>
+                            <div class="report-icon" style="background: linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05));">
+                                <i class="fas fa-user-friends" style="color: var(--uni-blue); font-size: 1.1rem;"></i>
                             </div>
                             <div>
-                                <h5 class="mb-1" style="color: var(--uni-navy); font-weight: 700;">Público Estimado</h5>
-                                <span style="font-size: 0.8rem; color: var(--uni-blue); font-weight: 600;">PDF</span>
+                                <h6 class="mb-0" style="color: var(--uni-navy); font-weight: 700;">Público Estimado</h6>
+                                <small class="text-muted">Estimativa por evento</small>
                             </div>
                         </div>
-                        <form th:action="@{/relatorios/publico}" method="get" target="_blank">
+                        <form th:action="@{/relatorios/publico}" method="get" target="_blank" class="d-flex flex-column flex-grow-1">
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
-                                    <input type="date" name="dataInicio" class="form-control form-control-sm" placeholder="De">
+                                    <label class="form-label" style="font-size: 0.8rem;">Início</label>
+                                    <input type="date" name="dataInicio" class="form-control form-control-sm">
                                 </div>
                                 <div class="col-6">
-                                    <input type="date" name="dataFim" class="form-control form-control-sm" placeholder="Até">
+                                    <label class="form-label" style="font-size: 0.8rem;">Fim</label>
+                                    <input type="date" name="dataFim" class="form-control form-control-sm">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-file-pdf me-2"></i> Gerar
-                            </button>
+                            <div class="mt-auto">
+                                <button type="submit" class="report-btn" data-loading style="font-size: 0.85rem;">
+                                    <i class="fas fa-file-pdf"></i> Gerar Relatório
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card border-0" style="border-radius: 14px; box-shadow: 0 4px 20px rgba(26,35,50,0.08); overflow: hidden;">
-                    <div style="height: 4px; background: linear-gradient(90deg, var(--uni-indigo), var(--uni-orange));"></div>
-                    <div class="card-body p-4">
+
+            <!-- Horas Contratadas -->
+            <div class="col-md-4">
+                <div class="card report-card h-100">
+                    <div class="report-bar"></div>
+                    <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex align-items-start mb-3">
-                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05)); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 16px;">
-                                <i class="fas fa-clock" style="color: var(--uni-indigo); font-size: 1.3rem;"></i>
+                            <div class="report-icon" style="background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05));">
+                                <i class="fas fa-clock" style="color: var(--uni-indigo); font-size: 1.1rem;"></i>
                             </div>
                             <div>
-                                <h5 class="mb-1" style="color: var(--uni-navy); font-weight: 700;">Horas Contratadas</h5>
-                                <span style="font-size: 0.8rem; color: var(--uni-indigo); font-weight: 600;">PDF</span>
+                                <h6 class="mb-0" style="color: var(--uni-navy); font-weight: 700;">Horas Contratadas</h6>
+                                <small class="text-muted">Cálculo automático</small>
                             </div>
                         </div>
-                        <form th:action="@{/relatorios/horas}" method="get" target="_blank">
+                        <form th:action="@{/relatorios/horas}" method="get" target="_blank" class="d-flex flex-column flex-grow-1">
                             <div class="row g-2 mb-3">
                                 <div class="col-6">
-                                    <input type="date" name="dataInicio" class="form-control form-control-sm" placeholder="De">
+                                    <label class="form-label" style="font-size: 0.8rem;">Início</label>
+                                    <input type="date" name="dataInicio" class="form-control form-control-sm">
                                 </div>
                                 <div class="col-6">
-                                    <input type="date" name="dataFim" class="form-control form-control-sm" placeholder="Até">
+                                    <label class="form-label" style="font-size: 0.8rem;">Fim</label>
+                                    <input type="date" name="dataFim" class="form-control form-control-sm">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-file-pdf me-2"></i> Gerar
-                            </button>
+                            <div class="mt-auto">
+                                <button type="submit" class="report-btn" data-loading style="font-size: 0.85rem;">
+                                    <i class="fas fa-file-pdf"></i> Gerar Relatório
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>

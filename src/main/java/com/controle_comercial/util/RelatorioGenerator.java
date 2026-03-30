@@ -2,6 +2,7 @@ package com.controle_comercial.util;
 
 import com.controle_comercial.model.entity.*;
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -21,688 +22,710 @@ public class RelatorioGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(RelatorioGenerator.class);
 
-    // === CORES UniSENAI ===
-    private static final BaseColor NAVY = new BaseColor(26, 35, 50);         // #1A2332
-    private static final BaseColor INDIGO = new BaseColor(99, 102, 241);     // #6366F1
-    private static final BaseColor ORANGE = new BaseColor(232, 93, 4);       // #E85D04
-    private static final BaseColor BG_LIGHT = new BaseColor(248, 250, 252);  // #F8FAFC
-    private static final BaseColor BG_ROW = new BaseColor(241, 245, 249);    // #F1F5F9
-    private static final BaseColor BORDER_LIGHT = new BaseColor(226, 232, 240);
+    // === CORES ===
+    private static final BaseColor NAVY = new BaseColor(26, 35, 50);
+    private static final BaseColor INDIGO = new BaseColor(99, 102, 241);
+    private static final BaseColor ORANGE = new BaseColor(232, 93, 4);
+    private static final BaseColor BG_LIGHT = new BaseColor(248, 250, 252);
+    private static final BaseColor BG_ROW = new BaseColor(241, 245, 249);
+    private static final BaseColor BORDER = new BaseColor(229, 231, 235);   // #E5E7EB
+    private static final BaseColor RED = new BaseColor(220, 38, 38);
 
     // === FONTES ===
-    private static final Font TITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, NAVY);
-    private static final Font TITLE_LIGHT = FontFactory.getFont(FontFactory.HELVETICA, 22, new BaseColor(100, 116, 139));
-    private static final Font SUBTITLE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.WHITE);
-    private static final Font HEADER_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, BaseColor.WHITE);
-    private static final Font NORMAL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 10, NAVY);
-    private static final Font BOLD_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, NAVY);
-    private static final Font LABEL_FONT = FontFactory.getFont(FontFactory.HELVETICA, 9, new BaseColor(100, 116, 139));
-    private static final Font TOTAL_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, NAVY);
-    private static final Font VALOR_DESTAQUE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, ORANGE);
-    private static final Font EVENTO_TITLE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, INDIGO);
-    private static final Font FOOTER_FONT = FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(148, 163, 184));
-    private static final Font BADGE_FONT = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, BaseColor.WHITE);
+    private static final Font F_TITLE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, NAVY);
+    private static final Font F_SECTION = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, BaseColor.WHITE);
+    private static final Font F_HEADER = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, BaseColor.WHITE);
+    private static final Font F_NORMAL = FontFactory.getFont(FontFactory.HELVETICA, 10, NAVY);
+    private static final Font F_BOLD = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, NAVY);
+    private static final Font F_LABEL = FontFactory.getFont(FontFactory.HELVETICA, 9, new BaseColor(100, 116, 139));
+    private static final Font F_TOTAL = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, NAVY);
+    private static final Font F_VALOR = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 15, ORANGE);
+    private static final Font F_EVENT_TITLE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, INDIGO);
+    private static final Font F_FOOTER = FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(148, 163, 184));
+    private static final Font F_BADGE = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, BaseColor.WHITE);
+    private static final Font F_BRAND = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.WHITE);
+    private static final Font F_BRAND_SUB = FontFactory.getFont(FontFactory.HELVETICA, 9, new BaseColor(160, 175, 200));
+
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
+    // =====================================================================
+    // DOCUMENTO BASE
+    // =====================================================================
+
+    private static PdfWriter criarDocumento(Document document, ByteArrayOutputStream out) throws DocumentException {
+        return PdfWriter.getInstance(document, out);
+    }
+
+    private static Document novoDocumento() {
+        return new Document(PageSize.A4, 30, 30, 35, 45);
+    }
+
+    private static void cabecalho(Document document, String titulo, String badge) throws DocumentException {
+        // Barra navy: UniSENAI grande + sub pequeno | badge
+        PdfPTable bar = new PdfPTable(2);
+        bar.setWidthPercentage(100);
+        bar.setWidths(new float[]{4, 1});
+        bar.setSpacingAfter(3);
+
+        PdfPCell brandCell = celula(null, NAVY, 10);
+        Paragraph brandP = new Paragraph();
+        brandP.add(new Chunk("UniSENAI\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.WHITE)));
+        brandP.add(new Chunk("Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(140, 155, 180))));
+        brandCell.addElement(brandP);
+        bar.addCell(brandCell);
+
+        PdfPCell badgeCell = new PdfPCell(new Phrase(badge, F_BADGE));
+        badgeCell.setBackgroundColor(ORANGE);
+        badgeCell.setPadding(10);
+        badgeCell.setBorder(Rectangle.NO_BORDER);
+        badgeCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        badgeCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        bar.addCell(badgeCell);
+        document.add(bar);
+
+        // Linha indigo
+        PdfPTable line = new PdfPTable(1);
+        line.setWidthPercentage(100);
+        line.setSpacingAfter(10);
+        PdfPCell lineCell = new PdfPCell();
+        lineCell.setFixedHeight(3);
+        lineCell.setBackgroundColor(INDIGO);
+        lineCell.setBorder(Rectangle.NO_BORDER);
+        line.addCell(lineCell);
+        document.add(line);
+
+        // Título do relatório
+        Paragraph p = new Paragraph(titulo, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, NAVY));
+        p.setSpacingAfter(4);
+        document.add(p);
+
+        // Linha sutil
+        LineSeparator sep = new LineSeparator();
+        sep.setLineColor(BORDER);
+        sep.setLineWidth(0.5f);
+        document.add(new Chunk(sep));
+        document.add(Chunk.NEWLINE);
+    }
+
+    private static void rodape(PdfWriter writer, Document document) {
+        String data = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"));
+        Phrase phrase = new Phrase("Gerado em " + data + " | UniSENAI - Sistema de Controle Comercial", F_FOOTER);
+        float x = (document.left() + document.right()) / 2;
+        float y = document.bottom() - 18;
+        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, phrase, x, y, 0);
+    }
+
+    private static void secao(Document document, String titulo) throws DocumentException {
+        PdfPTable t = new PdfPTable(new float[]{3f, 97f});
+        t.setWidthPercentage(100);
+        t.setSpacingBefore(14);
+        t.setSpacingAfter(6);
+
+        PdfPCell accent = new PdfPCell();
+        accent.setBackgroundColor(INDIGO);
+        accent.setBorder(Rectangle.NO_BORDER);
+        accent.setFixedHeight(22);
+        t.addCell(accent);
+
+        PdfPCell text = new PdfPCell(new Phrase(titulo, F_SECTION));
+        text.setBackgroundColor(NAVY);
+        text.setBorder(Rectangle.NO_BORDER);
+        text.setPadding(5);
+        text.setPaddingLeft(10);
+        text.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        t.addCell(text);
+
+        document.add(t);
+    }
+
+    private static void separador(Document document) throws DocumentException {
+        LineSeparator sep = new LineSeparator();
+        sep.setLineColor(BORDER);
+        sep.setLineWidth(0.5f);
+        sep.setPercentage(100);
+        Chunk c = new Chunk(sep);
+        Paragraph p = new Paragraph(c);
+        p.setSpacingBefore(6);
+        p.setSpacingAfter(2);
+        document.add(p);
+    }
+
+    // =====================================================================
+    // HELPERS DE CÉLULA E TABELA
+    // =====================================================================
+
+    private static PdfPCell celula(Phrase phrase, BaseColor bg, float padding) {
+        PdfPCell cell = new PdfPCell(phrase);
+        cell.setBackgroundColor(bg);
+        cell.setPadding(padding);
+        cell.setBorder(Rectangle.NO_BORDER);
+        return cell;
+    }
+
+    private static PdfPTable tabelaDetalhes() throws DocumentException {
+        PdfPTable t = new PdfPTable(2);
+        t.setWidthPercentage(100);
+        t.setWidths(new float[]{1, 3});
+        t.setSpacingAfter(4);
+        return t;
+    }
+
+    private static void linhaDetalhe(PdfPTable table, String label, String value) {
+        PdfPCell lbl = new PdfPCell(new Phrase(label, F_LABEL));
+        lbl.setBorder(Rectangle.BOTTOM);
+        lbl.setBorderColorBottom(BORDER);
+        lbl.setBorderWidthBottom(0.5f);
+        lbl.setPadding(7);
+        lbl.setBackgroundColor(BG_LIGHT);
+        table.addCell(lbl);
+
+        PdfPCell val = new PdfPCell(new Phrase(value, F_NORMAL));
+        val.setBorder(Rectangle.BOTTOM);
+        val.setBorderColorBottom(BORDER);
+        val.setBorderWidthBottom(0.5f);
+        val.setPadding(7);
+        table.addCell(val);
+    }
+
+    private static PdfPTable tabelaDados(int cols, float[] widths) throws DocumentException {
+        PdfPTable t = new PdfPTable(cols);
+        t.setWidthPercentage(100);
+        t.setWidths(widths);
+        t.setSpacingBefore(4);
+        t.setSpacingAfter(8);
+        return t;
+    }
+
+    private static void cabecalhoTabela(PdfPTable table, String... headers) {
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, F_HEADER));
+            cell.setBackgroundColor(NAVY);
+            cell.setPadding(8);
+            cell.setBorder(Rectangle.NO_BORDER);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setMinimumHeight(24);
+            table.addCell(cell);
+        }
+    }
+
+    private static void linhaTabela(PdfPTable table, String... valores) {
+        for (String v : valores) {
+            PdfPCell cell = new PdfPCell(new Phrase(v, F_NORMAL));
+            cell.setPadding(7);
+            cell.setBorder(Rectangle.BOTTOM);
+            cell.setBorderColorBottom(BORDER);
+            cell.setBorderWidthBottom(0.5f);
+            cell.setMinimumHeight(22);
+            table.addCell(cell);
+        }
+    }
+
+    private static void zebra(PdfPTable table) {
+        for (int i = 1; i < table.getRows().size(); i++) {
+            PdfPCell[] cells = table.getRow(i).getCells();
+            if (cells != null && i % 2 == 0) {
+                for (PdfPCell cell : cells) {
+                    if (cell != null) cell.setBackgroundColor(BG_ROW);
+                }
+            }
+        }
+    }
+
+    private static void campoInfo(PdfPTable table, String label, String value) {
+        PdfPCell lbl = celula(new Phrase(label, F_LABEL), BG_LIGHT, 6);
+        table.addCell(lbl);
+        PdfPCell val = celula(new Phrase(value, F_BOLD), BG_LIGHT, 6);
+        table.addCell(val);
+    }
+
+    private static String moeda(BigDecimal v) {
+        if (v == null) return "R$ 0,00";
+        return "R$ " + String.format("%.2f", v);
+    }
+
+    private static void blocoTotal(Document document, String label, String valor) throws DocumentException {
+        separador(document);
+        PdfPTable t = new PdfPTable(2);
+        t.setWidthPercentage(50);
+        t.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        t.setSpacingBefore(4);
+
+        PdfPCell lbl = new PdfPCell(new Phrase(label, F_TOTAL));
+        lbl.setBorder(Rectangle.NO_BORDER);
+        lbl.setPadding(10);
+        lbl.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        lbl.setBackgroundColor(BG_LIGHT);
+        t.addCell(lbl);
+
+        PdfPCell val = new PdfPCell(new Phrase(valor, F_VALOR));
+        val.setBorder(Rectangle.NO_BORDER);
+        val.setPadding(10);
+        val.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        val.setBackgroundColor(BG_LIGHT);
+        t.addCell(val);
+
+        document.add(t);
+    }
+
+    private static String nulo(String v) {
+        return (v != null && !v.isBlank()) ? v : "-";
+    }
+
+    private static String periodo(Evento e) {
+        String p = e.getDataInicio().format(DATE_FMT);
+        if (e.getDataFim() != null && !e.getDataFim().equals(e.getDataInicio()))
+            p += " a " + e.getDataFim().format(DATE_FMT);
+        return p;
+    }
 
     // =====================================================================
     // RELATÓRIO DE EVENTOS
     // =====================================================================
 
     public static ByteArrayInputStream gerarRelatorioEventos(List<Evento> eventos) throws DocumentException {
-        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        Document doc = novoDocumento();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter writer = criarDocumento(doc, out);
+        doc.open();
 
-        PdfWriter.getInstance(document, out);
-        document.open();
+        cabecalho(doc, "Relatório de Eventos", "RELATÓRIO");
 
-        adicionarCabecalhoDocumento(document, "Relatório de Eventos");
-        adicionarVisaoGeral(document, eventos);
+        // Visão geral
+        PdfPTable table = tabelaDados(6, new float[]{3, 2, 2, 3, 3, 2});
+        cabecalhoTabela(table, "Título", "Data", "Horário", "Cliente", "Local", "Valor");
+        for (Evento e : eventos) {
+            linhaTabela(table, e.getTitulo(), periodo(e),
+                    e.getHoraInicio().format(TIME_FMT) + "-" + e.getHoraFim().format(TIME_FMT),
+                    e.getCliente().getNome(), e.getLocal().getNome(), moeda(e.getValorTotal()));
+        }
+        zebra(table);
+        doc.add(table);
 
+        // Detalhamento por evento
         for (Evento evento : eventos) {
-            document.newPage();
-            adicionarCabecalhoDocumento(document, "Detalhes do Evento");
-            adicionarDetalhamentoEvento(document, evento);
+            doc.newPage();
+            cabecalho(doc, "Detalhes do Evento", "RELATÓRIO");
+
+            // Título do evento
+            PdfPTable titleCard = new PdfPTable(1);
+            titleCard.setWidthPercentage(100);
+            titleCard.setSpacingAfter(12);
+            PdfPCell tc = new PdfPCell();
+            tc.setBorder(Rectangle.NO_BORDER);
+            tc.setBorderWidthLeft(4);
+            tc.setBorderColorLeft(ORANGE);
+            tc.setPadding(12);
+            tc.setBackgroundColor(BG_LIGHT);
+            tc.addElement(new Paragraph(evento.getTitulo(), F_EVENT_TITLE));
+            titleCard.addCell(tc);
+            doc.add(titleCard);
+
+            // Info básica
+            PdfPTable info = new PdfPTable(4);
+            info.setWidthPercentage(100);
+            info.setWidths(new float[]{1, 2, 1, 2});
+            info.setSpacingAfter(8);
+            campoInfo(info, "Data", periodo(evento));
+            campoInfo(info, "Horário", evento.getHoraInicio().format(TIME_FMT) + " - " + evento.getHoraFim().format(TIME_FMT));
+            doc.add(info);
+
+            // Valor
+            PdfPTable vt = new PdfPTable(1);
+            vt.setWidthPercentage(100);
+            vt.setSpacingAfter(8);
+            PdfPCell vc = celula(null, BG_LIGHT, 12);
+            vc.setBorder(Rectangle.BOX);
+            vc.setBorderColor(BORDER);
+            Paragraph vp = new Paragraph();
+            vp.add(new Chunk("Valor Total: ", F_BOLD));
+            vp.add(new Chunk(moeda(evento.getValorTotal()), F_VALOR));
+            vc.addElement(vp);
+            vt.addCell(vc);
+            doc.add(vt);
+
+            if (evento.getObservacoes() != null && !evento.getObservacoes().isBlank()) {
+                Paragraph obs = new Paragraph();
+                obs.add(new Chunk("Observações: ", F_LABEL));
+                obs.add(new Chunk(evento.getObservacoes(), F_NORMAL));
+                obs.setSpacingAfter(6);
+                doc.add(obs);
+            }
+
+            separador(doc);
+
+            // Cliente
+            secao(doc, "Dados do Cliente");
+            PdfPTable ct = tabelaDetalhes();
+            linhaDetalhe(ct, "Nome", evento.getCliente().getNome());
+            linhaDetalhe(ct, "Telefone", nulo(evento.getCliente().getTelefone()));
+            linhaDetalhe(ct, "Email", nulo(evento.getCliente().getEmail()));
+            linhaDetalhe(ct, "Documento", nulo(evento.getCliente().getDocumento()));
+            doc.add(ct);
+
+            // Local
+            secao(doc, "Local do Evento");
+            PdfPTable lt = tabelaDetalhes();
+            linhaDetalhe(lt, "Nome", evento.getLocal().getNome());
+            linhaDetalhe(lt, "Tipo", evento.getLocal().getTipo().toString());
+            linhaDetalhe(lt, "Capacidade", evento.getLocal().getCapacidade() != null ? evento.getLocal().getCapacidade().toString() : "-");
+            if (evento.getLocaisAdicionais() != null && !evento.getLocaisAdicionais().isBlank())
+                linhaDetalhe(lt, "Locais Extras", evento.getLocaisAdicionais());
+            doc.add(lt);
+
+            // Serviços
+            secao(doc, "Serviços Contratados");
+            if (evento.getServicos() != null && !evento.getServicos().isEmpty()) {
+                PdfPTable st = tabelaDados(4, new float[]{3, 1.5f, 2, 2});
+                cabecalhoTabela(st, "Serviço", "Qtd", "Valor Unit.", "Subtotal");
+                BigDecimal total = BigDecimal.ZERO;
+                for (EventoServico es : evento.getServicos()) {
+                    BigDecimal sub = es.getServico().getPrecoUnitario().multiply(new BigDecimal(es.getQuantidade()));
+                    total = total.add(sub);
+                    linhaTabela(st, es.getServico().getNome(), es.getQuantidade().toString(), moeda(es.getServico().getPrecoUnitario()), moeda(sub));
+                }
+                zebra(st);
+                doc.add(st);
+
+                blocoTotal(doc, "TOTAL:", moeda(total));
+            } else {
+                doc.add(new Paragraph("Nenhum serviço contratado.", F_NORMAL));
+            }
         }
 
-        adicionarRodapeTexto(document);
-        document.close();
+        rodape(writer, doc);
+        doc.close();
         return new ByteArrayInputStream(out.toByteArray());
     }
 
     // =====================================================================
-    // RELATÓRIO COMPLETO
+    // RELATÓRIO COMPLETO (CADASTROS)
     // =====================================================================
 
     public static ByteArrayInputStream gerarRelatorioCompleto(
-            List<Cliente> clientes,
-            List<Servico> servicos,
-            List<Local> locais) throws DocumentException {
+            List<Cliente> clientes, List<Servico> servicos, List<Local> locais) throws DocumentException {
 
-        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        Document doc = novoDocumento();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        PdfWriter.getInstance(document, out);
-        document.open();
+        PdfWriter writer = criarDocumento(doc, out);
+        doc.open();
 
         // Clientes
-        adicionarCabecalhoDocumento(document, "Relatório Geral - Clientes");
-        PdfPTable clientesTable = criarTabela(4, new float[]{3, 2, 3, 2});
-        adicionarCabecalhoTabela(clientesTable, "Nome", "Telefone", "Email", "Documento");
-        for (Cliente c : clientes) {
-            adicionarLinhaTabela(clientesTable, c.getNome(),
-                    valorOuTraco(c.getTelefone()), valorOuTraco(c.getEmail()), valorOuTraco(c.getDocumento()));
-        }
-        aplicarZebra(clientesTable);
-        document.add(clientesTable);
+        cabecalho(doc, "Relatório Geral - Clientes", "RELATÓRIO");
+        PdfPTable ct = tabelaDados(4, new float[]{3, 2, 3, 2});
+        cabecalhoTabela(ct, "Nome", "Telefone", "Email", "Documento");
+        for (Cliente c : clientes) linhaTabela(ct, c.getNome(), nulo(c.getTelefone()), nulo(c.getEmail()), nulo(c.getDocumento()));
+        zebra(ct);
+        doc.add(ct);
 
-        // Servicos
-        document.newPage();
-        adicionarCabecalhoDocumento(document, "Relatório Geral - Serviços");
-        PdfPTable servicosTable = criarTabela(3, new float[]{3, 4, 2});
-        adicionarCabecalhoTabela(servicosTable, "Nome", "Descrição", "Preço Unitário");
-        for (Servico s : servicos) {
-            adicionarLinhaTabela(servicosTable, s.getNome(),
-                    valorOuTraco(s.getDescricao()), formatarMoeda(s.getPrecoUnitario()));
-        }
-        aplicarZebra(servicosTable);
-        document.add(servicosTable);
+        // Serviços
+        doc.newPage();
+        cabecalho(doc, "Relatório Geral - Serviços", "RELATÓRIO");
+        PdfPTable st = tabelaDados(3, new float[]{3, 4, 2});
+        cabecalhoTabela(st, "Nome", "Descrição", "Preço Unitário");
+        for (Servico s : servicos) linhaTabela(st, s.getNome(), nulo(s.getDescricao()), moeda(s.getPrecoUnitario()));
+        zebra(st);
+        doc.add(st);
 
         // Locais
-        document.newPage();
-        adicionarCabecalhoDocumento(document, "Relatório Geral - Locais");
-        PdfPTable locaisTable = criarTabela(3, new float[]{3, 2, 2});
-        adicionarCabecalhoTabela(locaisTable, "Nome", "Tipo", "Capacidade");
-        for (Local l : locais) {
-            adicionarLinhaTabela(locaisTable, l.getNome(), l.getTipo().toString(),
-                    l.getCapacidade() != null ? l.getCapacidade().toString() : "-");
-        }
-        aplicarZebra(locaisTable);
-        document.add(locaisTable);
+        doc.newPage();
+        cabecalho(doc, "Relatório Geral - Locais", "RELATÓRIO");
+        PdfPTable lt = tabelaDados(3, new float[]{3, 2, 2});
+        cabecalhoTabela(lt, "Nome", "Tipo", "Capacidade");
+        for (Local l : locais) linhaTabela(lt, l.getNome(), l.getTipo().toString(), l.getCapacidade() != null ? l.getCapacidade().toString() : "-");
+        zebra(lt);
+        doc.add(lt);
 
-        adicionarRodapeTexto(document);
-        document.close();
+        rodape(writer, doc);
+        doc.close();
         return new ByteArrayInputStream(out.toByteArray());
     }
 
     // =====================================================================
-    // COMPONENTES VISUAIS
-    // =====================================================================
-
-    private static void adicionarCabecalhoDocumento(Document document, String titulo) throws DocumentException {
-        // Barra navy com logo + badge laranja
-        PdfPTable headerBar = new PdfPTable(3);
-        headerBar.setWidthPercentage(100);
-        headerBar.setWidths(new float[]{1.2f, 3.5f, 1});
-        headerBar.setSpacingAfter(4);
-
-        // Brand text
-        PdfPCell logoCell = new PdfPCell();
-        logoCell.setBackgroundColor(NAVY);
-        logoCell.setPadding(12);
-        logoCell.setBorder(Rectangle.NO_BORDER);
-        logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        logoCell.addElement(new Phrase("UniSENAI", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.WHITE)));
-        headerBar.addCell(logoCell);
-
-        PdfPCell brandCell = new PdfPCell();
-        brandCell.setBackgroundColor(NAVY);
-        brandCell.setPadding(14);
-        brandCell.setBorder(Rectangle.NO_BORDER);
-        brandCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        brandCell.addElement(new Phrase("Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 10, new BaseColor(160, 175, 200))));
-        headerBar.addCell(brandCell);
-
-        PdfPCell badgeCell = new PdfPCell(new Phrase("RELATÓRIO", BADGE_FONT));
-        badgeCell.setBackgroundColor(ORANGE);
-        badgeCell.setPadding(14);
-        badgeCell.setBorder(Rectangle.NO_BORDER);
-        badgeCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        badgeCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        headerBar.addCell(badgeCell);
-        document.add(headerBar);
-
-        // Linha indigo fina
-        PdfPTable lineTable = new PdfPTable(1);
-        lineTable.setWidthPercentage(100);
-        lineTable.setSpacingAfter(16);
-        PdfPCell lineCell = new PdfPCell();
-        lineCell.setFixedHeight(3);
-        lineCell.setBackgroundColor(INDIGO);
-        lineCell.setBorder(Rectangle.NO_BORDER);
-        lineTable.addCell(lineCell);
-        document.add(lineTable);
-
-        // Título do relatório com estilo refinado
-        Paragraph titleParagraph = new Paragraph();
-        titleParagraph.add(new Chunk(titulo, TITLE_FONT));
-        titleParagraph.setSpacingBefore(6);
-        titleParagraph.setSpacingAfter(6);
-        document.add(titleParagraph);
-
-        // Linha sutil abaixo do título
-        LineSeparator subtleLine = new LineSeparator();
-        subtleLine.setLineColor(BORDER_LIGHT);
-        subtleLine.setLineWidth(1f);
-        document.add(new Chunk(subtleLine));
-        document.add(Chunk.NEWLINE);
-    }
-
-    private static void adicionarRodapeTexto(Document document) throws DocumentException {
-        document.add(Chunk.NEWLINE);
-        LineSeparator line = new LineSeparator();
-        line.setLineColor(BORDER_LIGHT);
-        document.add(new Chunk(line));
-
-        String dataGeracao = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"));
-        Paragraph footer = new Paragraph("Gerado em " + dataGeracao + " | UniSENAI - Sistema de Controle Comercial", FOOTER_FONT);
-        footer.setSpacingBefore(6);
-        document.add(footer);
-    }
-
-    private static void adicionarTituloSecao(Document document, String titulo) throws DocumentException {
-        PdfPTable sectionTable = new PdfPTable(new float[]{4f, 96f});
-        sectionTable.setWidthPercentage(100);
-        sectionTable.setSpacingBefore(22);
-        sectionTable.setSpacingAfter(10);
-
-        // Barra lateral laranja
-        PdfPCell accentCell = new PdfPCell();
-        accentCell.setBackgroundColor(ORANGE);
-        accentCell.setBorder(Rectangle.NO_BORDER);
-        accentCell.setFixedHeight(32);
-        sectionTable.addCell(accentCell);
-
-        // Texto da seção
-        PdfPCell textCell = new PdfPCell(new Phrase(titulo, SUBTITLE_FONT));
-        textCell.setBackgroundColor(NAVY);
-        textCell.setBorder(Rectangle.NO_BORDER);
-        textCell.setPadding(9);
-        textCell.setPaddingLeft(12);
-        textCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        sectionTable.addCell(textCell);
-
-        document.add(sectionTable);
-    }
-
-    // =====================================================================
-    // VISÃO GERAL DE EVENTOS
-    // =====================================================================
-
-    private static void adicionarVisaoGeral(Document document, List<Evento> eventos) throws DocumentException {
-        PdfPTable table = criarTabela(6, new float[]{3, 2, 2, 3, 3, 2});
-        adicionarCabecalhoTabela(table, "Título", "Data", "Horário", "Cliente", "Local", "Valor Total");
-
-        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
-
-        for (Evento e : eventos) {
-            String periodo = formatarPeriodo(e, dateFmt);
-            String horario = e.getHoraInicio().format(timeFmt) + " - " + e.getHoraFim().format(timeFmt);
-
-            adicionarLinhaTabela(table, e.getTitulo(), periodo, horario,
-                    e.getCliente().getNome(), e.getLocal().getNome(), formatarMoeda(e.getValorTotal()));
-        }
-
-        aplicarZebra(table);
-        document.add(table);
-    }
-
-    // =====================================================================
-    // DETALHAMENTO DE EVENTO
-    // =====================================================================
-
-    private static void adicionarDetalhamentoEvento(Document document, Evento evento) throws DocumentException {
-        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
-
-        // Card de título do evento
-        PdfPTable titleCard = new PdfPTable(1);
-        titleCard.setWidthPercentage(100);
-        titleCard.setSpacingAfter(18);
-
-        PdfPCell titleCell = new PdfPCell();
-        titleCell.setBorder(Rectangle.NO_BORDER);
-        titleCell.setBorderWidthLeft(5);
-        titleCell.setBorderColorLeft(ORANGE);
-        titleCell.setPadding(16);
-        titleCell.setBackgroundColor(BG_LIGHT);
-        Paragraph eventTitle = new Paragraph(evento.getTitulo(), EVENTO_TITLE);
-        titleCell.addElement(eventTitle);
-        titleCard.addCell(titleCell);
-        document.add(titleCard);
-
-        // Informações básicas
-        PdfPTable infoTable = new PdfPTable(4);
-        infoTable.setWidthPercentage(100);
-        infoTable.setWidths(new float[]{1, 2, 1, 2});
-        infoTable.setSpacingAfter(15);
-
-        adicionarCampoInfo(infoTable, "Data", formatarPeriodo(evento, dateFmt));
-        adicionarCampoInfo(infoTable, "Horário", evento.getHoraInicio().format(timeFmt) + " - " + evento.getHoraFim().format(timeFmt));
-        document.add(infoTable);
-
-        // Valor em destaque
-        PdfPTable valorTable = new PdfPTable(1);
-        valorTable.setWidthPercentage(100);
-        valorTable.setSpacingAfter(15);
-
-        PdfPCell valorCell = new PdfPCell();
-        valorCell.setBorder(Rectangle.BOX);
-        valorCell.setBorderColor(BORDER_LIGHT);
-        valorCell.setBackgroundColor(BG_LIGHT);
-        valorCell.setPadding(14);
-        Paragraph valorP = new Paragraph();
-        valorP.add(new Chunk("Valor Total: ", BOLD_FONT));
-        valorP.add(new Chunk(formatarMoeda(evento.getValorTotal()), VALOR_DESTAQUE));
-        valorCell.addElement(valorP);
-        valorTable.addCell(valorCell);
-        document.add(valorTable);
-
-        if (evento.getObservacoes() != null && !evento.getObservacoes().isEmpty()) {
-            Paragraph obs = new Paragraph();
-            obs.add(new Chunk("Observações: ", LABEL_FONT));
-            obs.add(new Chunk(evento.getObservacoes(), NORMAL_FONT));
-            obs.setSpacingAfter(10);
-            document.add(obs);
-        }
-
-        // Seções
-        adicionarSecaoCliente(document, evento.getCliente());
-        adicionarSecaoLocal(document, evento.getLocal(), evento.getLocaisAdicionais());
-        adicionarSecaoServicos(document, evento.getServicos());
-    }
-
-    private static void adicionarSecaoCliente(Document document, Cliente cliente) throws DocumentException {
-        adicionarTituloSecao(document, "Dados do Cliente");
-        PdfPTable table = criarTabelaDetalhes();
-        adicionarLinhaDetalhe(table, "Nome", cliente.getNome());
-        adicionarLinhaDetalhe(table, "Telefone", valorOuTraco(cliente.getTelefone()));
-        adicionarLinhaDetalhe(table, "Email", valorOuTraco(cliente.getEmail()));
-        adicionarLinhaDetalhe(table, "Documento", valorOuTraco(cliente.getDocumento()));
-        document.add(table);
-    }
-
-    private static void adicionarSecaoLocal(Document document, Local local, String locaisAdicionais) throws DocumentException {
-        adicionarTituloSecao(document, "Local do Evento");
-        PdfPTable table = criarTabelaDetalhes();
-        adicionarLinhaDetalhe(table, "Nome", local.getNome());
-        adicionarLinhaDetalhe(table, "Tipo", local.getTipo().toString());
-        adicionarLinhaDetalhe(table, "Capacidade", local.getCapacidade() != null ? local.getCapacidade().toString() : "-");
-        if (locaisAdicionais != null && !locaisAdicionais.isBlank()) {
-            adicionarLinhaDetalhe(table, "Locais Extras", locaisAdicionais);
-        }
-        document.add(table);
-    }
-
-    private static void adicionarSecaoServicos(Document document, Set<EventoServico> servicos) throws DocumentException {
-        adicionarTituloSecao(document, "Serviços Contratados");
-
-        if (servicos.isEmpty()) {
-            Paragraph p = new Paragraph("Nenhum serviço contratado para este evento.", NORMAL_FONT);
-            p.setSpacingAfter(15);
-            document.add(p);
-            return;
-        }
-
-        PdfPTable table = criarTabela(4, new float[]{3, 1.5f, 2, 2});
-        adicionarCabecalhoTabela(table, "Serviço", "Qtd", "Valor Unit.", "Subtotal");
-
-        BigDecimal total = BigDecimal.ZERO;
-        for (EventoServico es : servicos) {
-            BigDecimal subtotal = es.getServico().getPrecoUnitario()
-                    .multiply(new BigDecimal(es.getQuantidade()));
-            total = total.add(subtotal);
-
-            adicionarLinhaTabela(table, es.getServico().getNome(), es.getQuantidade().toString(),
-                    formatarMoeda(es.getServico().getPrecoUnitario()), formatarMoeda(subtotal));
-        }
-
-        aplicarZebra(table);
-        document.add(table);
-
-        // Total em destaque
-        PdfPTable totalTable = new PdfPTable(2);
-        totalTable.setWidthPercentage(100);
-        totalTable.setWidths(new float[]{3, 1});
-        totalTable.setSpacingBefore(4);
-
-        PdfPCell labelCell = new PdfPCell(new Phrase("TOTAL", BOLD_FONT));
-        labelCell.setBorder(Rectangle.TOP);
-        labelCell.setBorderColorTop(NAVY);
-        labelCell.setBorderWidthTop(2);
-        labelCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        labelCell.setPadding(10);
-        totalTable.addCell(labelCell);
-
-        PdfPCell valueCell = new PdfPCell(new Phrase(formatarMoeda(total), VALOR_DESTAQUE));
-        valueCell.setBorder(Rectangle.TOP);
-        valueCell.setBorderColorTop(NAVY);
-        valueCell.setBorderWidthTop(2);
-        valueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        valueCell.setPadding(10);
-        totalTable.addCell(valueCell);
-
-        document.add(totalTable);
-    }
-
-    // =====================================================================
-    // RELATÓRIO DE PÚBLICO ESTIMADO
+    // RELATÓRIO DE PÚBLICO
     // =====================================================================
 
     public static ByteArrayInputStream gerarRelatorioPublico(List<Evento> eventos) throws DocumentException {
-        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        Document doc = novoDocumento();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter writer = criarDocumento(doc, out);
+        doc.open();
 
-        PdfWriter.getInstance(document, out);
-        document.open();
+        cabecalho(doc, "Relatório de Público Estimado", "RELATÓRIO");
 
-        adicionarCabecalhoDocumento(document, "Relatório de Público Estimado");
-
-        PdfPTable table = criarTabela(5, new float[]{3, 2, 2, 2, 2});
-        adicionarCabecalhoTabela(table, "Evento", "Data", "Local", "Capacidade", "Público Est.");
-
-        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        PdfPTable table = tabelaDados(5, new float[]{3, 2, 2, 2, 2});
+        cabecalhoTabela(table, "Evento", "Data", "Local", "Capacidade", "Público Est.");
         int totalPublico = 0;
-
         for (Evento e : eventos) {
-            int publico = e.getEstimativaPublico() != null ? e.getEstimativaPublico()
+            int pub = e.getEstimativaPublico() != null ? e.getEstimativaPublico()
                     : (e.getLocal().getCapacidade() != null ? e.getLocal().getCapacidade() : 0);
-            totalPublico += publico;
-
-            adicionarLinhaTabela(table,
-                    e.getTitulo(),
-                    formatarPeriodo(e, dateFmt),
-                    e.getLocal().getNome(),
+            totalPublico += pub;
+            linhaTabela(table, e.getTitulo(), periodo(e), e.getLocal().getNome(),
                     e.getLocal().getCapacidade() != null ? e.getLocal().getCapacidade().toString() : "-",
-                    String.valueOf(publico));
+                    String.valueOf(pub));
         }
+        zebra(table);
+        doc.add(table);
 
-        aplicarZebra(table);
-        document.add(table);
+        blocoTotal(doc, "Total de público estimado:", totalPublico + " pessoas");
 
-        // Total
-        Paragraph totalP = new Paragraph();
-        totalP.add(new Chunk("Total de público estimado: ", BOLD_FONT));
-        totalP.add(new Chunk(String.valueOf(totalPublico) + " pessoas", VALOR_DESTAQUE));
-        totalP.setSpacingBefore(10);
-        document.add(totalP);
-
-        adicionarRodapeTexto(document);
-        document.close();
+        rodape(writer, doc);
+        doc.close();
         return new ByteArrayInputStream(out.toByteArray());
     }
 
     // =====================================================================
-    // RELATÓRIO DE HORAS CONTRATADAS
+    // RELATÓRIO DE HORAS
     // =====================================================================
 
     public static ByteArrayInputStream gerarRelatorioHoras(List<Evento> eventos) throws DocumentException {
-        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        Document doc = novoDocumento();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter writer = criarDocumento(doc, out);
+        doc.open();
 
-        PdfWriter.getInstance(document, out);
-        document.open();
+        cabecalho(doc, "Relatório de Horas Contratadas", "RELATÓRIO");
 
-        adicionarCabecalhoDocumento(document, "Relatório de Horas Contratadas");
-
-        PdfPTable table = criarTabela(5, new float[]{3, 2, 2, 1.5f, 1.5f});
-        adicionarCabecalhoTabela(table, "Evento", "Data", "Horário", "Dias", "Horas Total");
-
-        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+        PdfPTable table = tabelaDados(5, new float[]{3, 2, 2, 1.5f, 1.5f});
+        cabecalhoTabela(table, "Evento", "Data", "Horário", "Dias", "Horas");
         double totalHoras = 0;
-
         for (Evento e : eventos) {
             long dias = java.time.temporal.ChronoUnit.DAYS.between(e.getDataInicio(), e.getDataFim()) + 1;
-            double horasPorDia = java.time.Duration.between(e.getHoraInicio(), e.getHoraFim()).toMinutes() / 60.0;
-            double horasEvento = dias * horasPorDia;
-            totalHoras += horasEvento;
-
-            adicionarLinhaTabela(table,
-                    e.getTitulo(),
-                    formatarPeriodo(e, dateFmt),
-                    e.getHoraInicio().format(timeFmt) + " - " + e.getHoraFim().format(timeFmt),
-                    String.valueOf(dias),
-                    String.format("%.1fh", horasEvento));
+            double hpd = java.time.Duration.between(e.getHoraInicio(), e.getHoraFim()).toMinutes() / 60.0;
+            double h = dias * hpd;
+            totalHoras += h;
+            linhaTabela(table, e.getTitulo(), periodo(e),
+                    e.getHoraInicio().format(TIME_FMT) + "-" + e.getHoraFim().format(TIME_FMT),
+                    String.valueOf(dias), String.format("%.1fh", h));
         }
+        zebra(table);
+        doc.add(table);
 
-        aplicarZebra(table);
-        document.add(table);
+        blocoTotal(doc, "Total de horas contratadas:", String.format("%.1f horas", totalHoras));
 
-        Paragraph totalP = new Paragraph();
-        totalP.add(new Chunk("Total de horas contratadas: ", BOLD_FONT));
-        totalP.add(new Chunk(String.format("%.1f horas", totalHoras), VALOR_DESTAQUE));
-        totalP.setSpacingBefore(10);
-        document.add(totalP);
-
-        adicionarRodapeTexto(document);
-        document.close();
+        rodape(writer, doc);
+        doc.close();
         return new ByteArrayInputStream(out.toByteArray());
     }
 
     // =====================================================================
-    // PDF DE ORÇAMENTO
+    // PDF DE ORÇAMENTO (PROPOSTA COMERCIAL)
     // =====================================================================
 
     public static ByteArrayInputStream gerarPdfOrcamento(Orcamento orcamento) throws DocumentException {
-        Document document = new Document(PageSize.A4, 40, 40, 50, 40);
+        Document doc = novoDocumento();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter writer = criarDocumento(doc, out);
+        doc.open();
 
-        PdfWriter.getInstance(document, out);
-        document.open();
+        // ── 1. CABEÇALHO COM HIERARQUIA ──
+        // Barra navy com UniSENAI + badge PROPOSTA
+        PdfPTable bar = new PdfPTable(2);
+        bar.setWidthPercentage(100);
+        bar.setWidths(new float[]{4, 1});
+        bar.setSpacingAfter(3);
 
-        adicionarCabecalhoDocumento(document, "Proposta Comercial");
+        PdfPCell brandCell = celula(null, NAVY, 10);
+        Paragraph brandP = new Paragraph();
+        brandP.add(new Chunk("UniSENAI\n", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.WHITE)));
+        brandP.add(new Chunk("Sistema de Controle Comercial", FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(140, 155, 180))));
+        brandCell.addElement(brandP);
+        bar.addCell(brandCell);
 
-        // Número e validade
-        PdfPTable infoBar = new PdfPTable(2);
-        infoBar.setWidthPercentage(100);
-        infoBar.setWidths(new float[]{1, 1});
-        infoBar.setSpacingAfter(15);
+        PdfPCell badgeCell = new PdfPCell(new Phrase("PROPOSTA", F_BADGE));
+        badgeCell.setBackgroundColor(ORANGE);
+        badgeCell.setPadding(10);
+        badgeCell.setBorder(Rectangle.NO_BORDER);
+        badgeCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        badgeCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        bar.addCell(badgeCell);
+        doc.add(bar);
 
-        PdfPCell numCell = new PdfPCell();
-        numCell.setBorder(Rectangle.NO_BORDER);
-        numCell.setBackgroundColor(BG_LIGHT);
-        numCell.setPadding(12);
-        Paragraph numP = new Paragraph();
-        numP.add(new Chunk("Orçamento: ", LABEL_FONT));
-        numP.add(new Chunk(orcamento.getNumeroOrcamento(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14, INDIGO)));
-        numCell.addElement(numP);
-        infoBar.addCell(numCell);
+        // Linha indigo
+        PdfPTable line = new PdfPTable(1);
+        line.setWidthPercentage(100);
+        line.setSpacingAfter(10);
+        PdfPCell lc = new PdfPCell();
+        lc.setFixedHeight(3);
+        lc.setBackgroundColor(INDIGO);
+        lc.setBorder(Rectangle.NO_BORDER);
+        line.addCell(lc);
+        doc.add(line);
 
-        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        PdfPCell valCell = new PdfPCell();
-        valCell.setBorder(Rectangle.NO_BORDER);
-        valCell.setBackgroundColor(BG_LIGHT);
-        valCell.setPadding(12);
-        valCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        Paragraph valP = new Paragraph();
-        valP.add(new Chunk("Validade: ", LABEL_FONT));
-        valP.add(new Chunk(orcamento.getDataValidade() != null ? orcamento.getDataValidade().format(dateFmt) : "Não definida", BOLD_FONT));
-        valP.setAlignment(Element.ALIGN_RIGHT);
-        valCell.addElement(valP);
-        infoBar.addCell(valCell);
-        document.add(infoBar);
+        // Título "Proposta Comercial" grande
+        Paragraph titulo = new Paragraph("Proposta Comercial", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, NAVY));
+        titulo.setSpacingAfter(2);
+        doc.add(titulo);
 
-        // Cliente
-        adicionarTituloSecao(document, "Cliente");
-        PdfPTable clienteTable = criarTabelaDetalhes();
-        adicionarLinhaDetalhe(clienteTable, "Nome", orcamento.getCliente().getNome());
-        adicionarLinhaDetalhe(clienteTable, "Telefone", valorOuTraco(orcamento.getCliente().getTelefone()));
-        adicionarLinhaDetalhe(clienteTable, "Email", valorOuTraco(orcamento.getCliente().getEmail()));
-        document.add(clienteTable);
+        // Número + Validade como subtítulo
+        Paragraph subInfo = new Paragraph();
+        subInfo.add(new Chunk(orcamento.getNumeroOrcamento(), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, INDIGO)));
+        subInfo.add(new Chunk("   |   Validade: ", F_LABEL));
+        subInfo.add(new Chunk(orcamento.getDataValidade() != null ? orcamento.getDataValidade().format(DATE_FMT) : "Não definida", F_BOLD));
+        subInfo.setSpacingAfter(4);
+        doc.add(subInfo);
 
-        // Evento proposto
-        adicionarTituloSecao(document, "Evento Proposto");
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
-        PdfPTable eventoTable = criarTabelaDetalhes();
-        adicionarLinhaDetalhe(eventoTable, "Data", orcamento.getDataInicioEvento().format(dateFmt) +
-                (orcamento.getDataFimEvento().equals(orcamento.getDataInicioEvento()) ? "" : " a " + orcamento.getDataFimEvento().format(dateFmt)));
-        adicionarLinhaDetalhe(eventoTable, "Horário", orcamento.getHoraInicio().format(timeFmt) + " - " + orcamento.getHoraFim().format(timeFmt));
-        adicionarLinhaDetalhe(eventoTable, "Local", orcamento.getLocal().getNome());
-        document.add(eventoTable);
+        // Linha sutil
+        LineSeparator sep = new LineSeparator();
+        sep.setLineColor(BORDER);
+        sep.setLineWidth(0.5f);
+        doc.add(new Chunk(sep));
 
-        // Serviços
-        adicionarTituloSecao(document, "Serviços");
-        if (orcamento.getServicos() != null && !orcamento.getServicos().isEmpty()) {
-            PdfPTable servicosTable = criarTabela(4, new float[]{3, 1.5f, 2, 2});
-            adicionarCabecalhoTabela(servicosTable, "Serviço", "Qtd", "Valor Unit.", "Subtotal");
+        // ── 2. CLIENTE ──
+        secao(doc, "Cliente");
+        PdfPTable ct = tabelaDetalhes();
+        linhaDetalhe(ct, "Nome", orcamento.getCliente().getNome());
+        linhaDetalhe(ct, "Telefone", nulo(orcamento.getCliente().getTelefone()));
+        linhaDetalhe(ct, "Email", nulo(orcamento.getCliente().getEmail()));
+        doc.add(ct);
 
-            BigDecimal totalServicos = BigDecimal.ZERO;
-            for (OrcamentoServico os : orcamento.getServicos()) {
-                BigDecimal subtotal = os.getServico().getPrecoUnitario().multiply(new BigDecimal(os.getQuantidade()));
-                totalServicos = totalServicos.add(subtotal);
-                adicionarLinhaTabela(servicosTable,
-                        os.getServico().getNome(),
-                        os.getQuantidade().toString(),
-                        formatarMoeda(os.getServico().getPrecoUnitario()),
-                        formatarMoeda(subtotal));
-            }
-            aplicarZebra(servicosTable);
-            document.add(servicosTable);
-        }
-
-        // Valores
-        adicionarTituloSecao(document, "Valores");
-        PdfPTable valoresTable = criarTabelaDetalhes();
-        if (orcamento.getDescontoValor() != null && orcamento.getDescontoValor().compareTo(BigDecimal.ZERO) > 0) {
-            adicionarLinhaDetalhe(valoresTable, "Desconto", formatarMoeda(orcamento.getDescontoValor()));
-        }
-        document.add(valoresTable);
-
-        // Valor total em destaque
-        PdfPTable totalTable = new PdfPTable(1);
-        totalTable.setWidthPercentage(100);
-        totalTable.setSpacingBefore(8);
-        PdfPCell totalCell = new PdfPCell();
-        totalCell.setBorder(Rectangle.NO_BORDER);
-        totalCell.setBackgroundColor(BG_LIGHT);
-        totalCell.setPadding(16);
-        Paragraph totalP = new Paragraph();
-        totalP.add(new Chunk("VALOR TOTAL: ", TOTAL_FONT));
-        totalP.add(new Chunk(formatarMoeda(orcamento.getValorTotal()), VALOR_DESTAQUE));
-        totalP.setAlignment(Element.ALIGN_RIGHT);
-        totalCell.addElement(totalP);
-        totalTable.addCell(totalCell);
-        document.add(totalTable);
-
-        // Observações
+        // Observações do cliente (discreto, itálico, só se não vazio)
         if (orcamento.getObservacoes() != null && !orcamento.getObservacoes().isBlank()) {
-            document.add(Chunk.NEWLINE);
-            Paragraph obsP = new Paragraph();
-            obsP.add(new Chunk("Observações: ", BOLD_FONT));
-            obsP.add(new Chunk(orcamento.getObservacoes(), NORMAL_FONT));
-            document.add(obsP);
+            Font italicSmall = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 9, new BaseColor(100, 116, 139));
+            Paragraph obs = new Paragraph();
+            obs.add(new Chunk("Obs: ", FontFactory.getFont(FontFactory.HELVETICA_BOLDOBLIQUE, 9, new BaseColor(100, 116, 139))));
+            obs.add(new Chunk(orcamento.getObservacoes(), italicSmall));
+            obs.setSpacingBefore(2);
+            obs.setSpacingAfter(4);
+            doc.add(obs);
         }
 
-        adicionarRodapeTexto(document);
-        document.close();
-        return new ByteArrayInputStream(out.toByteArray());
-    }
+        // ── 3. EVENTO PROPOSTO ──  (espaçamento via secao)
+        secao(doc, "Evento Proposto");
+        PdfPTable et = tabelaDetalhes();
+        String dataEvento = orcamento.getDataInicioEvento().format(DATE_FMT) +
+                (orcamento.getDataFimEvento().equals(orcamento.getDataInicioEvento()) ? "" : " a " + orcamento.getDataFimEvento().format(DATE_FMT));
+        linhaDetalhe(et, "Data", dataEvento);
+        linhaDetalhe(et, "Horário", orcamento.getHoraInicio().format(TIME_FMT) + " - " + orcamento.getHoraFim().format(TIME_FMT));
+        linhaDetalhe(et, "Local", orcamento.getLocal().getNome());
+        doc.add(et);
 
-    // =====================================================================
-    // HELPERS
-    // =====================================================================
+        // ── 4. SERVIÇOS ──
+        secao(doc, "Serviços");
+        BigDecimal subtotalServicos = BigDecimal.ZERO;
+        if (orcamento.getServicos() != null && !orcamento.getServicos().isEmpty()) {
+            PdfPTable st = tabelaDados(4, new float[]{3.5f, 1, 2, 2});
+            cabecalhoTabela(st, "Serviço", "Qtd", "Valor Unit.", "Subtotal");
 
-    private static PdfPTable criarTabela(int colunas, float[] larguras) throws DocumentException {
-        PdfPTable table = new PdfPTable(colunas);
-        table.setWidthPercentage(100);
-        table.setWidths(larguras);
-        table.setSpacingBefore(8);
-        table.setSpacingAfter(15);
-        return table;
-    }
+            for (OrcamentoServico os : orcamento.getServicos()) {
+                BigDecimal sub = os.getServico().getPrecoUnitario().multiply(new BigDecimal(os.getQuantidade()));
+                subtotalServicos = subtotalServicos.add(sub);
 
-    private static PdfPTable criarTabelaDetalhes() throws DocumentException {
-        PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100);
-        table.setWidths(new float[]{1, 3});
-        table.setSpacingAfter(10);
-        return table;
-    }
+                // Nome e Qtd alinhados à esquerda, valores à direita
+                PdfPCell nomeCell = new PdfPCell(new Phrase(os.getServico().getNome(), F_NORMAL));
+                nomeCell.setPadding(7);
+                nomeCell.setBorder(Rectangle.BOTTOM);
+                nomeCell.setBorderColorBottom(BORDER);
+                nomeCell.setBorderWidthBottom(0.5f);
+                st.addCell(nomeCell);
 
-    private static void adicionarCabecalhoTabela(PdfPTable table, String... headers) {
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell(new Phrase(header, HEADER_FONT));
-            cell.setBackgroundColor(NAVY);
-            cell.setPadding(10);
-            cell.setBorder(Rectangle.NO_BORDER);
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setMinimumHeight(28);
-            table.addCell(cell);
-        }
-    }
+                PdfPCell qtdCell = new PdfPCell(new Phrase(os.getQuantidade().toString(), F_NORMAL));
+                qtdCell.setPadding(7);
+                qtdCell.setBorder(Rectangle.BOTTOM);
+                qtdCell.setBorderColorBottom(BORDER);
+                qtdCell.setBorderWidthBottom(0.5f);
+                qtdCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                st.addCell(qtdCell);
 
-    private static void adicionarLinhaTabela(PdfPTable table, String... valores) {
-        for (String valor : valores) {
-            PdfPCell cell = new PdfPCell(new Phrase(valor, NORMAL_FONT));
-            cell.setPadding(9);
-            cell.setBorder(Rectangle.BOTTOM);
-            cell.setBorderColorBottom(BORDER_LIGHT);
-            cell.setBorderWidthBottom(0.5f);
-            cell.setMinimumHeight(26);
-            table.addCell(cell);
-        }
-    }
+                PdfPCell unitCell = new PdfPCell(new Phrase(moeda(os.getServico().getPrecoUnitario()), F_NORMAL));
+                unitCell.setPadding(7);
+                unitCell.setBorder(Rectangle.BOTTOM);
+                unitCell.setBorderColorBottom(BORDER);
+                unitCell.setBorderWidthBottom(0.5f);
+                unitCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                st.addCell(unitCell);
 
-    private static void adicionarLinhaDetalhe(PdfPTable table, String label, String value) {
-        PdfPCell labelCell = new PdfPCell(new Phrase(label, LABEL_FONT));
-        labelCell.setBorder(Rectangle.BOTTOM);
-        labelCell.setBorderColorBottom(BORDER_LIGHT);
-        labelCell.setBorderWidthBottom(0.5f);
-        labelCell.setPadding(9);
-        labelCell.setBackgroundColor(BG_LIGHT);
-        table.addCell(labelCell);
-
-        PdfPCell valueCell = new PdfPCell(new Phrase(value, NORMAL_FONT));
-        valueCell.setBorder(Rectangle.BOTTOM);
-        valueCell.setBorderColorBottom(BORDER_LIGHT);
-        valueCell.setBorderWidthBottom(0.5f);
-        valueCell.setPadding(9);
-        table.addCell(valueCell);
-    }
-
-    private static void adicionarCampoInfo(PdfPTable table, String label, String value) {
-        PdfPCell labelCell = new PdfPCell(new Phrase(label, LABEL_FONT));
-        labelCell.setBorder(Rectangle.NO_BORDER);
-        labelCell.setPadding(8);
-        labelCell.setBackgroundColor(BG_LIGHT);
-        table.addCell(labelCell);
-
-        PdfPCell valueCell = new PdfPCell(new Phrase(value, BOLD_FONT));
-        valueCell.setBorder(Rectangle.NO_BORDER);
-        valueCell.setPadding(8);
-        valueCell.setBackgroundColor(BG_LIGHT);
-        table.addCell(valueCell);
-    }
-
-    private static void aplicarZebra(PdfPTable table) {
-        int headerRows = 1;
-        int totalRows = table.getRows().size();
-        for (int i = headerRows; i < totalRows; i++) {
-            PdfPCell[] cells = table.getRow(i).getCells();
-            if (cells != null && i % 2 == 0) {
-                for (PdfPCell cell : cells) {
-                    if (cell != null) {
-                        cell.setBackgroundColor(BG_ROW);
-                    }
-                }
+                PdfPCell subCell = new PdfPCell(new Phrase(moeda(sub), F_BOLD));
+                subCell.setPadding(7);
+                subCell.setBorder(Rectangle.BOTTOM);
+                subCell.setBorderColorBottom(BORDER);
+                subCell.setBorderWidthBottom(0.5f);
+                subCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                st.addCell(subCell);
             }
+            zebra(st);
+            doc.add(st);
         }
-    }
 
-    private static String formatarPeriodo(Evento evento, DateTimeFormatter fmt) {
-        String periodo = evento.getDataInicio().format(fmt);
-        if (evento.getDataFim() != null && !evento.getDataFim().equals(evento.getDataInicio())) {
-            periodo += " a " + evento.getDataFim().format(fmt);
+        // ── 5. BLOCO DE TOTALIZAÇÃO ──
+        PdfPTable totais = new PdfPTable(2);
+        totais.setWidthPercentage(45);
+        totais.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totais.setWidths(new float[]{2, 2});
+        totais.setSpacingBefore(4);
+
+        // Subtotal
+        PdfPCell stl = new PdfPCell(new Phrase("Subtotal:", F_BOLD));
+        stl.setBorder(Rectangle.BOTTOM);
+        stl.setBorderColorBottom(BORDER);
+        stl.setBorderWidthBottom(0.5f);
+        stl.setPadding(7);
+        stl.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totais.addCell(stl);
+
+        PdfPCell stv = new PdfPCell(new Phrase(moeda(subtotalServicos), F_NORMAL));
+        stv.setBorder(Rectangle.BOTTOM);
+        stv.setBorderColorBottom(BORDER);
+        stv.setBorderWidthBottom(0.5f);
+        stv.setPadding(7);
+        stv.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totais.addCell(stv);
+
+        // Desconto (vermelho discreto, só se > 0)
+        BigDecimal desconto = orcamento.getDescontoValor() != null ? orcamento.getDescontoValor() : BigDecimal.ZERO;
+        if (desconto.compareTo(BigDecimal.ZERO) > 0) {
+            PdfPCell dl = new PdfPCell(new Phrase("Desconto:", F_BOLD));
+            dl.setBorder(Rectangle.BOTTOM);
+            dl.setBorderColorBottom(BORDER);
+            dl.setBorderWidthBottom(0.5f);
+            dl.setPadding(7);
+            dl.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            totais.addCell(dl);
+
+            PdfPCell dv = new PdfPCell(new Phrase("- " + moeda(desconto), FontFactory.getFont(FontFactory.HELVETICA, 10, RED)));
+            dv.setBorder(Rectangle.BOTTOM);
+            dv.setBorderColorBottom(BORDER);
+            dv.setBorderWidthBottom(0.5f);
+            dv.setPadding(7);
+            dv.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            totais.addCell(dv);
         }
-        return periodo;
-    }
 
-    private static String formatarMoeda(BigDecimal valor) {
-        if (valor == null) return "R$ 0,00";
-        return "R$ " + String.format("%.2f", valor);
-    }
+        // TOTAL (destacado: bold, fonte maior, fundo highlight)
+        PdfPCell tl = new PdfPCell(new Phrase("TOTAL:", F_TOTAL));
+        tl.setBorder(Rectangle.TOP);
+        tl.setBorderColorTop(NAVY);
+        tl.setBorderWidthTop(2);
+        tl.setPadding(10);
+        tl.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        tl.setBackgroundColor(BG_LIGHT);
+        totais.addCell(tl);
 
-    private static String valorOuTraco(String valor) {
-        return (valor != null && !valor.isBlank()) ? valor : "-";
+        PdfPCell tv = new PdfPCell(new Phrase(moeda(orcamento.getValorTotal()), F_VALOR));
+        tv.setBorder(Rectangle.TOP);
+        tv.setBorderColorTop(NAVY);
+        tv.setBorderWidthTop(2);
+        tv.setPadding(10);
+        tv.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        tv.setBackgroundColor(BG_LIGHT);
+        totais.addCell(tv);
+
+        doc.add(totais);
+
+        // ── 6. CONDIÇÕES ──
+        separador(doc);
+        Font condFont = FontFactory.getFont(FontFactory.HELVETICA, 8, new BaseColor(120, 130, 145));
+        Paragraph cond = new Paragraph();
+        cond.add(new Chunk("Condições: ", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 8, new BaseColor(120, 130, 145))));
+        cond.add(new Chunk("Pagamento via boleto bancário ou PIX. Validade conforme data indicada acima. " +
+                "Valores sujeitos a alteração após o vencimento. Esta proposta não constitui contrato.", condFont));
+        cond.setSpacingBefore(4);
+        doc.add(cond);
+
+        // ── 7. RODAPÉ FIXO ──
+        rodape(writer, doc);
+
+        doc.close();
+        return new ByteArrayInputStream(out.toByteArray());
     }
 }
